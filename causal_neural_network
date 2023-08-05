@@ -76,6 +76,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
   build_model(keras_tuner.HyperParameters())
   
   for i in range(0,simulations):
+    print("iterations = " + str(i))
     random.seed(i)
     np.random.seed(i)
     tf.random.set_seed(i)
