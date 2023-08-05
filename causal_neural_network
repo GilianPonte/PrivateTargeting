@@ -14,27 +14,6 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
   
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
-  # save models
-  checkpoint_filepath_mx = 'm_x.hdf5'
-  checkpoint_filepath_taux = 'tau_x.hdf5'
-  mx_callbacks = [
-    callback,
-    tf.keras.callbacks.ModelCheckpoint(
-    filepath=checkpoint_filepath_mx,
-    save_weights_only=False,
-    monitor='val_loss',
-    mode='min',
-    save_freq="epoch",
-    save_best_only=True),]
-  tau_hat_callbacks = [
-    callback,
-    tf.keras.callbacks.ModelCheckpoint(
-    filepath=checkpoint_filepath_taux,
-    save_weights_only=False,
-    monitor='val_loss',
-    mode='min',
-    save_freq="epoch",
-    save_best_only=True),]
   
   # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
   def ATE(y_true, y_pred):
@@ -80,7 +59,29 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
     random.seed(i)
     np.random.seed(i)
     tf.random.set_seed(i)
-    
+
+    # save models
+    checkpoint_filepath_mx = 'm_x_'+ str(i) + '.hdf5'
+    checkpoint_filepath_taux = 'tau_x' + str(i) + '.hdf5'
+    mx_callbacks = [
+      callback,
+      tf.keras.callbacks.ModelCheckpoint(
+      filepath=checkpoint_filepath_mx,
+      save_weights_only=False,
+      monitor='val_loss',
+      mode='min',
+      save_freq="epoch",
+      save_best_only=True),]
+    tau_hat_callbacks = [
+      callback,
+      tf.keras.callbacks.ModelCheckpoint(
+      filepath=checkpoint_filepath_taux,
+      save_weights_only=False,
+      monitor='val_loss',
+      mode='min',
+      save_freq="epoch",
+      save_best_only=True),]
+
     y_tilde_hat = [] # collect all the \tilde{Y}
     T_tilde_hat = [] # collect all the \tilde{T}
     callback = tf.keras.callbacks.EarlyStopping(monitor= "val_loss", patience = 5, mode = "min") # early stopping
