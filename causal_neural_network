@@ -108,7 +108,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
         project_name="yhat",)
     
     if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
-      tuner.search(X, Y, epochs=epochs, validation_split=0.25, callbacks=[callback])
+      tuner.search(X, Y, epochs=epochs, validation_split=0.25, callbacks=[callback], verbose = 0)
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
       print(best_hps.values)
@@ -169,7 +169,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       project_name="tau_hat",)
     
     if i == 0:
-      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, callbacks=[callback])
+      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, callbacks=[callback], verbose = 0)
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
     
     cv = KFold(n_splits=folds)
