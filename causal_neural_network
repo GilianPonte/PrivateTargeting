@@ -1,6 +1,14 @@
 def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size = 10, epochs = 50, folds = 10):
   from sklearn.linear_model import LogisticRegressionCV
-  import keras_tuner
+  from keras.layers import Activation, LeakyReLU
+  from keras import backend as K
+  from keras.utils import get_custom_objects
+  try:
+    import keras_tuner
+  except:
+    print("installing keras tuner")
+    !pip install keras_tuner -q
+    import keras_tuner
   import random
   import tensorflow as tf
   from tensorflow import keras
@@ -13,11 +21,12 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
   tf.random.set_seed(1)
   
   # callback settings for early stopping and saving
-  callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
+  callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 25, mode = "min") # early stopping just like in rboost
   
   # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
   def ATE(y_true, y_pred):
     return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`  
+
   # storage of cate estimates
   average_CATE_estimates_out_of_sample = []
   average_CATE_estimates_in_sample = []
@@ -27,26 +36,29 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
     scaler0 = MinMaxScaler(feature_range = (-1, 1))
     scaler0 = scaler0.fit(X)
     X = scaler0.transform(X)
+
+  ## Add leaky-relu so we can use it as a string
+  get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
   
   def build_model(hp):
     model = keras.Sequential()
     model.add(layers.Flatten())
     # Tune the number of layers.
-    for i in range(hp.Int("num_layers", 1, 5)):
+    for i in range(hp.Int("num_layers", 1, 3)):
         model.add(
             layers.Dense(
                 # Tune number of units separately.
                 units=hp.Choice(f"units_{i}", [2,4,8,16,32,64,128,256,512,1024]),
-                activation=hp.Choice("activation", ["relu", "tanh"]),
+                activation=hp.Choice("activation", ["leaky-relu", "relu"]),
             )
         )
     if hp.Boolean("dropout"):
         model.add(layers.Dropout(rate=0.8))
     model.add(layers.Dense(1, activation="linear"))
-    learning_rate = hp.Float("lr", min_value=1e-4, max_value=1e-2, sampling="log")
+    #learning_rate = hp.Choice("lr", [1e-2,1e-3,1e-4]),
 
     model.compile(
-        optimizer=keras.optimizers.Adam(learning_rate=learning_rate),
+        optimizer=keras.optimizers.Adam(learning_rate=0.001),
         loss="mean_squared_error",
         metrics=["MSE"],
     )
@@ -84,7 +96,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
 
     y_tilde_hat = [] # collect all the \tilde{Y}
     T_tilde_hat = [] # collect all the \tilde{T}
-    callback = tf.keras.callbacks.EarlyStopping(monitor= "val_loss", patience = 5, mode = "min") # early stopping
+    callback = tf.keras.callbacks.EarlyStopping(monitor= "val_loss", patience = 20, mode = "min") # early stopping
     
     print("hyperparameter optimization for yhat")
     tuner = keras_tuner.Hyperband(
@@ -94,13 +106,14 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
         overwrite=True,
         directory="tuner",
         project_name="yhat",)
-    tuner.search(X, Y, epochs=2, validation_split=0.2, callbacks=[callback])
     
-    # Get the optimal hyperparameters
-    best_hps=tuner.get_best_hyperparameters()[0]
-    print(best_hps.values)
+    if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
+      tuner.search(X, Y, epochs=epochs, validation_split=0.25, callbacks=[callback])
+      # Get the optimal hyperparameters
+      best_hps=tuner.get_best_hyperparameters()[0]
+      print(best_hps.values)
     
-    cv = KFold(n_splits=folds) # 5-fold validation
+    cv = KFold(n_splits=folds) # K-fold validation
     
     for train_idx, test_idx in cv.split(X):
       print("training model for m(x)")
@@ -154,8 +167,10 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       overwrite=True,
       directory="tuner",
       project_name="tau_hat",)
-    tuner1.search(X, pseudo_outcome, epochs=2, validation_split=0.2, callbacks=[callback])
-    best_hps_tau =tuner1.get_best_hyperparameters()[0]
+    
+    if i == 0:
+      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, callbacks=[callback])
+      best_hps_tau =tuner1.get_best_hyperparameters()[0]
     
     cv = KFold(n_splits=folds)
     for train_idx, test_idx in cv.split(X):
