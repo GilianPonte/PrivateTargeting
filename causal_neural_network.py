@@ -135,8 +135,8 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
 
       ## fit \hat{e}(x)
       print("training model for e(x)")
-      clf = LogisticRegressionCV(cv=5, random_state=0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
-      e_x = clf.predict_proba(X[test_idx], verbose = 0) # obtain \hat{e}(x)
+      clf = LogisticRegressionCV(cv=5, random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
+      e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
 
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
       print("obtaining T_tilde")
