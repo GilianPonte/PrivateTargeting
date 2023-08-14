@@ -185,7 +185,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
       tau_hat.build(input_shape = (None,X.shape[1]))
       tau_hat.load_weights(checkpoint_filepath_taux)
-      CATE = tau_hat.predict(x=X[test_idx]).reshape(len(X[test_idx]), verbose = 0)
+      CATE = tau_hat.predict(x=X[test_idx], verbose = 0).reshape(len(X[test_idx]))
 
       #print("average treatment effect of = " + str(np.mean(CATE)))
       CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
