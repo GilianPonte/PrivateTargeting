@@ -193,19 +193,19 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
     average_CATE_estimates_out_of_sample = np.append(average_CATE_estimates_out_of_sample,np.mean(CATE_estimates))
     print("ATE = " + str(np.mean(average_CATE_estimates_out_of_sample)))
 
-    tau_hat_final = tuner1.hypermodel.build(best_hps_tau)
-    tau_hat.build(input_shape = (None,X.shape[1]))
+#    tau_hat_final = tuner1.hypermodel.build(best_hps_tau)
+#    tau_hat.build(input_shape = (None,X.shape[1]))
 
-    print("training for tau hat")
-    tau_hat_final.fit(
-          X,
-          pseudo_outcome,
-          sample_weight= w_weigths,
-          epochs = best_hps_tau.values['tuner/epochs'],
-          batch_size = batch_size,
-          verbose = 0
-          #callbacks = [callback]
-          )
-    CATE = tau_hat_final.predict(x=X).reshape(len(X))
-    average_CATE_estimates_in_sample = np.append(average_CATE_estimates_in_sample,np.mean(CATE))
+#    print("training for tau hat")
+#    tau_hat_final.fit(
+#          X,
+#          pseudo_outcome,
+#          sample_weight= w_weigths,
+#          epochs = best_hps_tau.values['tuner/epochs'],
+#          batch_size = batch_size,
+#          verbose = 0
+#          #callbacks = [callback]
+#          )
+#    CATE = tau_hat_final.predict(x=X).reshape(len(X))
+#    average_CATE_estimates_in_sample = np.append(average_CATE_estimates_in_sample,np.mean(CATE))
   return average_CATE_estimates_in_sample, average_CATE_estimates_out_of_sample
