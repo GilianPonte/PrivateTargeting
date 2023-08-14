@@ -108,9 +108,10 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       best_hps=tuner.get_best_hyperparameters()[0]
       print(best_hps.values)
     
-    cv = KFold(n_splits=folds) # K-fold validation
+    cv = KFold(n_splits=folds, random_state = 0) # K-fold validation
     
-    for train_idx, test_idx in cv.split(X):
+    for k, (train_idx, test_idx) in enumerate(cv.split(X)):
+      print(f"Fold {i}:")
       print("training model for m(x)")
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.fit(
