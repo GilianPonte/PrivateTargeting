@@ -94,15 +94,14 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
     T_tilde_hat = [] # collect all the \tilde{T}
     callback = tf.keras.callbacks.EarlyStopping(monitor= "val_loss", patience = 5, mode = "min") # early stopping
     
-    tuner = keras_tuner.Hyperband(
+    if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
+     tuner = keras_tuner.Hyperband(
         hypermodel=build_model,
         objective="val_loss",
         max_epochs=epochs,
         overwrite=True,
         directory="tuner",
         project_name="yhat",)
-    
-    if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
       print("hyperparameter optimization for yhat")
       tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0)
       # Get the optimal hyperparameters
@@ -154,17 +153,16 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
 
     ## weights
     w_weigths = np.square(T_tilde_hat) # \tilde{T}**2
-
-    print("hyperparameter optimization for tau hat")
-    tuner1 = keras_tuner.Hyperband(
-      hypermodel=build_model,
-      objective="val_loss",
-      max_epochs=epochs,
-      overwrite=True,
-      directory="tuner",
-      project_name="tau_hat",)
     
     if i == 0:
+      print("hyperparameter optimization for tau hat")
+      tuner1 = keras_tuner.Hyperband(
+          hypermodel=build_model,
+          objective="val_loss",
+          max_epochs=epochs,
+          overwrite=True,
+          directory="tuner",
+          project_name="tau_hat",)
       tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
     
