@@ -106,6 +106,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0)
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
+      print("the optimal architecture is: ")
       print(best_hps.values)
 
     cv = KFold(n_splits=folds) # K-fold validation
