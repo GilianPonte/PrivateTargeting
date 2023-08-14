@@ -52,8 +52,6 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
                 activation=hp.Choice("activation", ["leaky-relu", "relu"]),
             )
         )
-    if hp.Boolean("dropout"):
-        model.add(layers.Dropout(rate=0.8))
     model.add(layers.Dense(1, activation="linear"))
     #learning_rate = hp.Choice("lr", [1e-2,1e-3,1e-4]),
 
@@ -63,8 +61,6 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
         metrics=["MSE"],
     )
     return model
-  
-  build_model(keras_tuner.HyperParameters())
   
   for i in range(0,simulations):
     print("iterations = " + str(i))
@@ -129,7 +125,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.build(input_shape = (None,X.shape[1]))
       model_m_x.load_weights(checkpoint_filepath_mx)
-      m_x = model_m_x.predict(x=X[test_idx]).reshape(len(Y[test_idx])) # obtain \hat{m}(x) from test set
+      m_x = model_m_x.predict(x=X[test_idx]).reshape(len(Y[test_idx]), verbose = 0) # obtain \hat{m}(x) from test set
       
       # obtain \tilde{Y} = Y_{i} - \hat{m}(x)
       print("obtaining Y_tilde")
@@ -140,7 +136,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       ## fit \hat{e}(x)
       print("training model for e(x)")
       clf = LogisticRegressionCV(cv=5, random_state=0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
-      e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
+      e_x = clf.predict_proba(X[test_idx], verbose = 0) # obtain \hat{e}(x)
       
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
       print("obtaining T_tilde")
@@ -183,17 +179,19 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
           epochs = epochs,
           batch_size = batch_size,
           callbacks = tau_hat_callbacks,
-          validation_data = (X[test_idx], pseudo_outcome[test_idx])
+          validation_data = (X[test_idx], pseudo_outcome[test_idx]),
+          verbose = 0
           )
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
       tau_hat.build(input_shape = (None,X.shape[1]))
       tau_hat.load_weights(checkpoint_filepath_taux)
-      CATE = tau_hat.predict(x=X[test_idx]).reshape(len(X[test_idx]))
+      CATE = tau_hat.predict(x=X[test_idx]).reshape(len(X[test_idx]), verbose = 0)
 
       #print("average treatment effect of = " + str(np.mean(CATE)))
       CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
     #print(np.mean(CATE_estimates))
     average_CATE_estimates_out_of_sample = np.append(average_CATE_estimates_out_of_sample,np.mean(CATE_estimates))
+    print("ATE = " + str(np.mean(average_CATE_estimates_out_of_sample)))
 
     tau_hat_final = tuner1.hypermodel.build(best_hps_tau)
     tau_hat.build(input_shape = (None,X.shape[1]))
@@ -204,7 +202,8 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
           pseudo_outcome,
           sample_weight= w_weigths,
           epochs = best_hps_tau.values['tuner/epochs'],
-          batch_size = batch_size
+          batch_size = batch_size,
+          verbose = 0
           #callbacks = [callback]
           )
     CATE = tau_hat_final.predict(x=X).reshape(len(X))
