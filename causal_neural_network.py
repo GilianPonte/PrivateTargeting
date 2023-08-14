@@ -109,9 +109,8 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       print(best_hps.values)
 
     cv = KFold(n_splits=folds) # K-fold validation
-
+    print("training model for m(x)")
     for k, (train_idx, test_idx) in enumerate(cv.split(X)):
-      print("training model for m(x)")
       print(f"Fold {k}:")
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.fit(
@@ -168,8 +167,8 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
 
     cv = KFold(n_splits=folds)
+    print("training for tau hat")
     for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
-      print("training for tau hat")
       print(f"Fold {k}:")
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
       history_tau = tau_hat.fit(
