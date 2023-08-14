@@ -98,7 +98,6 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
     T_tilde_hat = [] # collect all the \tilde{T}
     callback = tf.keras.callbacks.EarlyStopping(monitor= "val_loss", patience = 20, mode = "min") # early stopping
     
-    print("hyperparameter optimization for yhat")
     tuner = keras_tuner.Hyperband(
         hypermodel=build_model,
         objective="val_loss",
@@ -108,6 +107,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
         project_name="yhat",)
     
     if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
+      print("hyperparameter optimization for yhat")
       tuner.search(X, Y, epochs=epochs, validation_split=0.25, callbacks=[callback], verbose = 0)
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
@@ -124,8 +124,8 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
           epochs = epochs,
           batch_size = batch_size,
           validation_data = (X[test_idx], Y[test_idx]),
-          callbacks= mx_callbacks # prevent overfitting with early stopping. If val_loss does not decrease after 10 epochs take that model.
-          )
+          callbacks= mx_callbacks, # prevent overfitting with early stopping. If val_loss does not decrease after 10 epochs take that model.
+          verbose = 0)
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.build(input_shape = (None,X.shape[1]))
       model_m_x.load_weights(checkpoint_filepath_mx)
@@ -159,7 +159,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
     ## weights
     w_weigths = np.square(T_tilde_hat) # \tilde{T}**2
 
-    print("hyperparameter optimization for tau hau")
+    print("hyperparameter optimization for tau hat")
     tuner1 = keras_tuner.Hyperband(
       hypermodel=build_model,
       objective="val_loss",
