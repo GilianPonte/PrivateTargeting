@@ -125,7 +125,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.build(input_shape = (None,X.shape[1]))
       model_m_x.load_weights(checkpoint_filepath_mx)
-      m_x = model_m_x.predict(x=X[test_idx]).reshape(len(Y[test_idx]), verbose = 0) # obtain \hat{m}(x) from test set
+      m_x = model_m_x.predict(x=X[test_idx], verbose = 0).reshape(len(Y[test_idx])) # obtain \hat{m}(x) from test set
 
       # obtain \tilde{Y} = Y_{i} - \hat{m}(x)
       print("obtaining Y_tilde")
