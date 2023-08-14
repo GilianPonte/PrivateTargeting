@@ -14,23 +14,23 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
   from tensorflow import keras
   from keras import layers
   from sklearn.model_selection import KFold
-  
+
   # reproducability
   random.seed(1)
   np.random.seed(1)
   tf.random.set_seed(1)
-  
+
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
-  
+
   # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
   def ATE(y_true, y_pred):
-    return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`  
+    return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
 
   # storage of cate estimates
   average_CATE_estimates_out_of_sample = []
   average_CATE_estimates_in_sample = []
-  
+
   ## scale the data for well-behaved gradients
   if scaling == True:
     scaler0 = MinMaxScaler(feature_range = (-1, 1))
@@ -39,7 +39,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
 
   ## Add leaky-relu so we can use it as a string
   get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
-  
+
   def build_model(hp):
     model = keras.Sequential()
     model.add(layers.Flatten())
@@ -61,7 +61,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
         metrics=["MSE"],
     )
     return model
-  
+
   for i in range(0,simulations):
     print("iterations = " + str(i))
     random.seed(i)
@@ -93,7 +93,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
     y_tilde_hat = [] # collect all the \tilde{Y}
     T_tilde_hat = [] # collect all the \tilde{T}
     callback = tf.keras.callbacks.EarlyStopping(monitor= "val_loss", patience = 5, mode = "min") # early stopping
-    
+
     if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
       print("hyperparameter optimization for yhat")
       tuner = keras_tuner.Hyperband(
@@ -107,9 +107,9 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
       print(best_hps.values)
-    
-    cv = KFold(n_splits=folds, random_state = 0) # K-fold validation
-    
+
+    cv = KFold(n_splits=folds) # K-fold validation
+
     for k, (train_idx, test_idx) in enumerate(cv.split(X)):
       print("training model for m(x)")
       print(f"Fold {k}:")
@@ -126,18 +126,18 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       model_m_x.build(input_shape = (None,X.shape[1]))
       model_m_x.load_weights(checkpoint_filepath_mx)
       m_x = model_m_x.predict(x=X[test_idx]).reshape(len(Y[test_idx]), verbose = 0) # obtain \hat{m}(x) from test set
-      
+
       # obtain \tilde{Y} = Y_{i} - \hat{m}(x)
       print("obtaining Y_tilde")
       truth = Y[test_idx].T.reshape(len(Y[test_idx]))
       y_tilde = truth - m_x
       y_tilde_hat = np.concatenate((y_tilde_hat,y_tilde)) # cbind in r
-      
+
       ## fit \hat{e}(x)
       print("training model for e(x)")
       clf = LogisticRegressionCV(cv=5, random_state=0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
       e_x = clf.predict_proba(X[test_idx], verbose = 0) # obtain \hat{e}(x)
-      
+
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
       print("obtaining T_tilde")
       truth = T[test_idx].T.reshape(len(T[test_idx]))
@@ -154,7 +154,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
 
     ## weights
     w_weigths = np.square(T_tilde_hat) # \tilde{T}**2
-    
+
     if i == 0:
       print("hyperparameter optimization for tau hat")
       tuner1 = keras_tuner.Hyperband(
@@ -166,8 +166,8 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
           project_name="tau_hat",)
       tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
-    
-    cv = KFold(n_splits=folds, random_state = 0)
+
+    cv = KFold(n_splits=folds)
     for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
       print("training for tau hat")
       print(f"Fold {k}:")
