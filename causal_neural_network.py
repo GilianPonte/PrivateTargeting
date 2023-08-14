@@ -95,14 +95,14 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
     callback = tf.keras.callbacks.EarlyStopping(monitor= "val_loss", patience = 5, mode = "min") # early stopping
     
     if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
-     tuner = keras_tuner.Hyperband(
+      print("hyperparameter optimization for yhat")
+      tuner = keras_tuner.Hyperband(
         hypermodel=build_model,
         objective="val_loss",
         max_epochs=epochs,
         overwrite=True,
         directory="tuner",
         project_name="yhat",)
-      print("hyperparameter optimization for yhat")
       tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0)
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
@@ -111,8 +111,8 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
     cv = KFold(n_splits=folds, random_state = 0) # K-fold validation
     
     for k, (train_idx, test_idx) in enumerate(cv.split(X)):
-      print(f"Fold {i}:")
       print("training model for m(x)")
+      print(f"Fold {k}:")
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.fit(
           X[train_idx],
@@ -167,9 +167,10 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
     
-    cv = KFold(n_splits=folds)
-    for train_idx, test_idx in cv.split(X):
+    cv = KFold(n_splits=folds, random_state = 0)
+    for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
       print("training for tau hat")
+      print(f"Fold {k}:")
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
       history_tau = tau_hat.fit(
           X[train_idx],
