@@ -28,8 +28,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
 
   # storage of cate estimates
-  average_CATE_estimates_out_of_sample = []
-  average_CATE_estimates_in_sample = []
+  average_treatment_effect = []
 
   ## scale the data for well-behaved gradients
   if scaling == True:
