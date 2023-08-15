@@ -13,4 +13,10 @@ We provide a function that replicates our estimator of the CATE in causal_neural
 7. `batch_size`: requires the batch size (int).
 8. `folds`: requires the number of folds for K-fold cross-validation.
 
+It returns:
+
+1. the average treatment effect in `average_treatment_effect`.
+2. the uplift or CATE per customer in `CATE_estimates`.
+3. a Keras model that predicts the CATE based on covariates X in `tau_hat`.
+
 ## Example using simulated data.
