@@ -1,4 +1,4 @@
-def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size = 100, epochs = 100, folds = 5):
+def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, folds = 5):
   from sklearn.linear_model import LogisticRegressionCV
   from keras.layers import Activation, LeakyReLU
   from keras import backend as K
@@ -190,22 +190,7 @@ def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size 
       #print("average treatment effect of = " + str(np.mean(CATE)))
       CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
     #print(np.mean(CATE_estimates))
-    average_CATE_estimates_out_of_sample = np.append(average_CATE_estimates_out_of_sample,np.mean(CATE_estimates))
+    average_treatment_effect = np.append(average_treatment_effect,np.mean(CATE_estimates))
     print("ATE = " + str(np.mean(average_CATE_estimates_out_of_sample)))
 
-#    tau_hat_final = tuner1.hypermodel.build(best_hps_tau)
-#    tau_hat.build(input_shape = (None,X.shape[1]))
-
-#    print("training for tau hat")
-#    tau_hat_final.fit(
-#          X,
-#          pseudo_outcome,
-#          sample_weight= w_weigths,
-#          epochs = best_hps_tau.values['tuner/epochs'],
-#          batch_size = batch_size,
-#          verbose = 0
-#          #callbacks = [callback]
-#          )
-#    CATE = tau_hat_final.predict(x=X).reshape(len(X))
-#    average_CATE_estimates_in_sample = np.append(average_CATE_estimates_in_sample,np.mean(CATE))
-  return average_CATE_estimates_in_sample, average_CATE_estimates_out_of_sample
+  return average_treatment_effect, CATE_estimates, tau_hat
