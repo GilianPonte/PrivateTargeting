@@ -1,9 +1,3 @@
-
-[![PyPI - Python Version](https://img.shields.io/badge/python-3.6%20%7C%203.7%20%7C%203.8-blue)]()
-[![PyPI version](https://img.shields.io/pypi/v/openfl)]()
-[![Citation](https://img.shields.io/badge/cite-citation-brightgreen)]()
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]()
-
 # Causal Neural Network.
 In this repository, we open-source the causal neural network from our paper. This library allows you to estimate the CATE of any targeting intervention.
 
