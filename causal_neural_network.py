@@ -190,6 +190,6 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
     #print(np.mean(CATE_estimates))
     average_treatment_effect = np.append(average_treatment_effect,np.mean(CATE_estimates))
-    print("ATE = " + str(np.mean(average_CATE_estimates_out_of_sample)))
+    print("ATE = " + str(np.mean(average_treatment_effect)))
 
   return average_treatment_effect, CATE_estimates, tau_hat
