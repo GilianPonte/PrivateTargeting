@@ -1,4 +1,4 @@
-def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size = 10, epochs = 50, folds = 10):
+def causal_neural_network(X, Y, T, scaling = False, simulations = 1, batch_size = 100, epochs = 100, folds = 5):
   from sklearn.linear_model import LogisticRegressionCV
   from keras.layers import Activation, LeakyReLU
   from keras import backend as K
