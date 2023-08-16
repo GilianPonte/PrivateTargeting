@@ -1,4 +1,4 @@
-def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, folds = 5):
+def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, folds = 5, directory = "tuner"):
   from sklearn.linear_model import LogisticRegressionCV
   from keras.layers import Activation, LeakyReLU
   from keras import backend as K
@@ -41,14 +41,14 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
 
   def build_model(hp):
     model = keras.Sequential()
-    model.add(layers.Flatten())
+    model.add(keras.Input(shape=(X.shape[1],)))
     # Tune the number of layers.
-    for i in range(hp.Int("num_layers", 1, 3)):
+    for i in range(hp.Int("num_layers", 1, 5)):
         model.add(
             layers.Dense(
                 # Tune number of units separately.
-                units=hp.Choice(f"units_{i}", [2,4,8,16,32,64,128,256,512,1024]),
-                activation=hp.Choice("activation", ["leaky-relu", "relu"]),
+                units=hp.Choice(f"units_{i}", [4,16,64,256,512,1024]),
+                activation=hp.Choice("activation", ["leaky-relu", "relu", "linear"]),
             )
         )
     model.add(layers.Dense(1, activation="linear"))
@@ -91,7 +91,6 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
 
     y_tilde_hat = [] # collect all the \tilde{Y}
     T_tilde_hat = [] # collect all the \tilde{T}
-    callback = tf.keras.callbacks.EarlyStopping(monitor= "val_loss", patience = 5, mode = "min") # early stopping
 
     if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
       print("hyperparameter optimization for yhat")
@@ -100,7 +99,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
         objective="val_loss",
         max_epochs=epochs,
         overwrite=True,
-        directory="tuner",
+        directory=directory,
         project_name="yhat",)
       tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0)
       # Get the optimal hyperparameters
@@ -134,7 +133,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
 
       ## fit \hat{e}(x)
       print("training model for e(x)")
-      clf = LogisticRegressionCV(cv=5, random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
+      clf = LogisticRegressionCV(cv=folds, random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
       e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
 
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
@@ -161,7 +160,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
           objective="val_loss",
           max_epochs=epochs,
           overwrite=True,
-          directory="tuner",
+          directory=directory,
           project_name="tau_hat",)
       tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
