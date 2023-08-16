@@ -101,7 +101,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
         overwrite=True,
         directory=directory,
         project_name="yhat",)
-      tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0)
+      tuner.search(X, Y, epochs = epochs, validation_split=0.5, verbose = 0)
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
       print("the optimal architecture is: ")
@@ -162,7 +162,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
           overwrite=True,
           directory=directory,
           project_name="tau_hat",)
-      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
+      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.5, verbose = 0)
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
 
     cv = KFold(n_splits=folds)
