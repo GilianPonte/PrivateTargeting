@@ -128,7 +128,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       print("obtaining Y_tilde")
       truth = Y[test_idx].T.reshape(len(Y[test_idx]))
       y_tilde = truth - m_x
-      y_tilde_hat = np.concatenate((y_tilde_hat,y_tilde)) # cbind in r
+      y_tilde_hat = np.concatenate((y_tilde_hat,y_tilde)) # collect predictions
 
       ## fit \hat{e}(x)
       print("training model for e(x)")
