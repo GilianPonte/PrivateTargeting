@@ -48,7 +48,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
             layers.Dense(
                 # Tune number of units separately.
                 units=hp.Choice(f"units_{i}", [4,16,64,256,512,1024]),
-                activation=hp.Choice("activation", ["leaky-relu", "relu", "linear"]),
+                activation=hp.Choice("activation", ["leaky-relu", "relu"]),
             )
         )
     model.add(layers.Dense(1, activation="linear"))
@@ -104,8 +104,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       tuner.search(X, Y, epochs = epochs, validation_split=0.5, verbose = 0)
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
-      print("the optimal architecture is: ")
-      print(best_hps.values)
+      print("the optimal architecture for Y conditional on X is: " + str(best_hps.values))
 
     cv = KFold(n_splits=folds) # K-fold validation
     print("training model for m(x)")
@@ -133,7 +132,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
 
       ## fit \hat{e}(x)
       print("training model for e(x)")
-      clf = LogisticRegressionCV(cv=folds, random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
+      clf = LogisticRegressionCV(cv=10, random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
       e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
 
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
@@ -163,7 +162,8 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
           directory=directory,
           project_name="tau_hat",)
       tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.5, verbose = 0)
-      best_hps_tau =tuner1.get_best_hyperparameters()[0]
+      best_hps_tau = tuner1.get_best_hyperparameters()[0]
+      print("the optimal architecture for tau is: " + str(best_hps_tau.values))
 
     cv = KFold(n_splits=folds)
     print("training for tau hat")
