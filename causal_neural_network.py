@@ -38,11 +38,11 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     model = keras.Sequential()
     model.add(keras.Input(shape=(X.shape[1],)))
     # Tune the number of layers.
-    for i in range(hp.Int("num_layers", 1, 10)):
+    for i in range(hp.Int("num_layers", 1, 5)):
         model.add(
             layers.Dense(
                 # Tune number of units separately.
-                units=hp.Choice(f"units_{i}", [8, 16, 32, 64,256,512,1024]),
+                units=hp.Choice(f"units_{i}", [8, 16, 32, 64,256,512,1024, 2048, 4096]),
                 activation=hp.Choice("activation", ["leaky-relu", "relu"]),
             )
         )
@@ -56,8 +56,8 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     )
     return model
 
-  for i in range(0,simulations + 1):
-    print("iteration = " + str(i))
+  for i in range(0,simulations):
+    print("iteration = " + str(i+1))
     random.seed(i)
     np.random.seed(i)
     tf.random.set_seed(i)
@@ -70,8 +70,8 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
 
     y_tilde_hat = [] # collect all the \tilde{Y}
     T_tilde_hat = [] # collect all the \tilde{T}
-    m_x_hat = []
-    e_x_hat = []
+    m_x_hat = [] # collect all m_x_hat for print
+    e_x_hat = [] # collect all e_x_hat for print
 
     if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
       print("hyperparameter optimization for yhat")
@@ -87,7 +87,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       best_hps=tuner.get_best_hyperparameters()[0]
       print("the optimal architecture is: " + str(best_hps.values))
 
-    cv = KFold(n_splits=folds, shuffle = True) # K-fold validation
+    cv = KFold(n_splits=folds, shuffle = False) # K-fold validation shuffle is off to prevent additional noise?
 
     for k, (train_idx, test_idx) in enumerate(cv.split(X)):
       random.seed(k)
@@ -107,7 +107,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       model_m_x.build(input_shape = (None,X.shape[1]))
       model_m_x.load_weights(checkpoint_filepath_mx)
       m_x = model_m_x.predict(x=X[test_idx], verbose = 0).reshape(len(Y[test_idx])) # obtain \hat{m}(x) from test set
-      
+
       # obtain \tilde{Y} = Y_{i} - \hat{m}(x)
       #print("obtaining Y_tilde")
       truth = Y[test_idx].T.reshape(len(Y[test_idx]))
@@ -120,7 +120,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       clf = LogisticRegression(verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
       e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
       print(f"Fold {k}: mean(m_x) = " + str(np.round(np.mean(m_x),2)) + ", sd(m_x) = " + str(np.round(np.std(m_x),3)) + " and mean(e_x) = " + str(np.round(np.mean(e_x[:,1]),2)) + ", sd(e_x) = " + str(np.round(np.std(e_x[:,1]),3)))
-      
+
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
       #print("obtaining T_tilde")
       truth = T[test_idx].T.reshape(len(T[test_idx]))
@@ -128,7 +128,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       T_tilde_hat = np.concatenate((T_tilde_hat,T_tilde))
       e_x_hat = np.concatenate((e_x_hat,e_x[:,1]))
 
-    print("mean(m_x) = " + str(np.round(np.mean(m_x_hat),2)) + ", sd(m_x) = " + str(np.round(np.std(m_x_hat),3)) + " and mean(e_x) = " + str(np.round(np.mean(e_x_hat),2)) + ", sd(e_x) = " + str(np.round(np.std(e_x_hat),3)))  
+    print("mean(m_x) = " + str(np.round(np.mean(m_x_hat),2)) + ", sd(m_x) = " + str(np.round(np.std(m_x_hat),3)) + " and mean(e_x) = " + str(np.round(np.mean(e_x_hat),2)) + ", sd(e_x) = " + str(np.round(np.std(e_x_hat),3)))
     # storage
     CATE_estimates = []
     CATE = []
@@ -149,9 +149,13 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     best_hps_tau =tuner1.get_best_hyperparameters()[0]
     print("the optimal architecture is: " + str(best_hps_tau.values))
 
-    cv = KFold(n_splits=folds, shuffle = True)
+    cv = KFold(n_splits=folds, shuffle = False)
     print("training for tau hat")
     for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
+      random.seed(k)
+      np.random.seed(k)
+      tf.random.set_seed(k)
+
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
       history_tau = tau_hat.fit(
           X[train_idx],
@@ -167,7 +171,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       tau_hat.load_weights(checkpoint_filepath_taux)
       CATE = tau_hat.predict(x=X[test_idx], verbose = 0).reshape(len(X[test_idx]))
       print(f"Fold {k}: mean(tau_hat) = " + str(np.round(np.mean(CATE),2)) + ", sd(m_x) = " + str(np.round(np.std(CATE),3)))
-      
+
       CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
     average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
     print("ATE = " + str(np.round(np.mean(average_treatment_effect), 4)) + ", std(ATE) = " + str(np.round(np.std(average_treatment_effect), 3)))
