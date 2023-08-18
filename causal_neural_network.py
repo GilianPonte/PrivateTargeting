@@ -70,24 +70,8 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     # save models
     checkpoint_filepath_mx = 'm_x_'+ str(i) + '.hdf5'
     checkpoint_filepath_taux = 'tau_x' + str(i) + '.hdf5'
-    mx_callbacks = [
-      callback,
-      tf.keras.callbacks.ModelCheckpoint(
-      filepath=checkpoint_filepath_mx,
-      save_weights_only=False,
-      monitor='val_loss',
-      mode='min',
-      save_freq="epoch",
-      save_best_only=True),]
-    tau_hat_callbacks = [
-      callback,
-      tf.keras.callbacks.ModelCheckpoint(
-      filepath=checkpoint_filepath_taux,
-      save_weights_only=False,
-      monitor='val_loss',
-      mode='min',
-      save_freq="epoch",
-      save_best_only=True),]
+    mx_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
+    tau_hat_callbacks = [ callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_taux, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
 
     y_tilde_hat = [] # collect all the \tilde{Y}
     T_tilde_hat = [] # collect all the \tilde{T}
@@ -97,14 +81,15 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       tuner = keras_tuner.Hyperband(
         hypermodel=build_model,
         objective="val_loss",
-        max_epochs=epochs,
+        max_epochs=int(epochs),
         overwrite=True,
         directory=directory,
         project_name="yhat",)
-      tuner.search(X, Y, epochs = epochs, validation_split=0.5, verbose = 0)
+      tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0)
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
-      print("the optimal architecture for Y conditional on X is: " + str(best_hps.values))
+      print("the optimal architecture is: ")
+      print(best_hps.values)
 
     cv = KFold(n_splits=folds) # K-fold validation
     print("training model for m(x)")
@@ -128,11 +113,11 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       print("obtaining Y_tilde")
       truth = Y[test_idx].T.reshape(len(Y[test_idx]))
       y_tilde = truth - m_x
-      y_tilde_hat = np.concatenate((y_tilde_hat,y_tilde)) # collect predictions
+      y_tilde_hat = np.concatenate((y_tilde_hat,y_tilde)) # cbind in r
 
       ## fit \hat{e}(x)
       print("training model for e(x)")
-      clf = LogisticRegressionCV(cv=10, random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
+      clf = LogisticRegressionCV(cv=folds, random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
       e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
 
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
@@ -157,13 +142,12 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       tuner1 = keras_tuner.Hyperband(
           hypermodel=build_model,
           objective="val_loss",
-          max_epochs=epochs,
+          max_epochs=int(epochs),
           overwrite=True,
           directory=directory,
           project_name="tau_hat",)
-      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.5, verbose = 0)
-      best_hps_tau = tuner1.get_best_hyperparameters()[0]
-      print("the optimal architecture for tau is: " + str(best_hps_tau.values))
+      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
+      best_hps_tau =tuner1.get_best_hyperparameters()[0]
 
     cv = KFold(n_splits=folds)
     print("training for tau hat")
@@ -178,8 +162,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
           batch_size = batch_size,
           callbacks = tau_hat_callbacks,
           validation_data = (X[test_idx], pseudo_outcome[test_idx]),
-          verbose = 0
-          )
+          verbose = 0)
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
       tau_hat.build(input_shape = (None,X.shape[1]))
       tau_hat.load_weights(checkpoint_filepath_taux)
