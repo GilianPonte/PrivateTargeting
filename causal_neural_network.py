@@ -70,6 +70,8 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
 
     y_tilde_hat = [] # collect all the \tilde{Y}
     T_tilde_hat = [] # collect all the \tilde{T}
+    m_x_hat = []
+    e_x_hat = []
 
     if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
       print("hyperparameter optimization for yhat")
@@ -111,6 +113,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       truth = Y[test_idx].T.reshape(len(Y[test_idx]))
       y_tilde = truth - m_x
       y_tilde_hat = np.concatenate((y_tilde_hat,y_tilde)) # cbind in r
+      m_x_hat = np.concatenate((m_x_hat,m_x)) # cbind in r
 
       ## fit \hat{e}(x)
       #print("training model for e(x)")
@@ -123,12 +126,12 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       truth = T[test_idx].T.reshape(len(T[test_idx]))
       T_tilde = truth - e_x[:,1]
       T_tilde_hat = np.concatenate((T_tilde_hat,T_tilde))
+      e_x_hat = np.concatenate((e_x_hat,e_x[:,1]))
 
+    print("mean(m_x) = " + str(np.round(np.mean(m_x_hat),2)) + ", sd(m_x) = " + str(np.round(np.std(m_x_hat),3)) + " and mean(e_x) = " + str(np.round(np.mean(e_x_hat),2)) + ", sd(e_x) = " + str(np.round(np.std(e_x_hat),3)))  
+    # storage
     CATE_estimates = []
     CATE = []
-
-    epochs_train_loss_per_fold = []
-    epochs_val_loss_per_fold = []
 
     ## pseudo_outcome and weights
     pseudo_outcome = (y_tilde_hat/T_tilde_hat) # pseudo_outcome = \tilde{Y} / \tilde{T}
