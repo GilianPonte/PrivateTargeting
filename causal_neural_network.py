@@ -151,7 +151,6 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     cv = KFold(n_splits=folds)
     print("training for tau hat")
     for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
-      print(f"Fold {k}:")
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
       history_tau = tau_hat.fit(
           X[train_idx],
