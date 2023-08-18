@@ -43,11 +43,11 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     model = keras.Sequential()
     model.add(keras.Input(shape=(X.shape[1],)))
     # Tune the number of layers.
-    for i in range(hp.Int("num_layers", 1, 5)):
+    for i in range(hp.Int("num_layers", 1, 8)):
         model.add(
             layers.Dense(
                 # Tune number of units separately.
-                units=hp.Choice(f"units_{i}", [4,16,64,256,512,1024]),
+                units=hp.Choice(f"units_{i}", [8, 16, 32, 64,256,512,1024]),
                 activation=hp.Choice("activation", ["leaky-relu", "relu"]),
             )
         )
@@ -88,8 +88,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0)
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
-      print("the optimal architecture is: ")
-      print(best_hps.values)
+      print("the optimal architecture is: " + str(best_hps.values))
 
     cv = KFold(n_splits=folds) # K-fold validation
     print("training model for m(x)")
@@ -108,7 +107,6 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       model_m_x.build(input_shape = (None,X.shape[1]))
       model_m_x.load_weights(checkpoint_filepath_mx)
       m_x = model_m_x.predict(x=X[test_idx], verbose = 0).reshape(len(Y[test_idx])) # obtain \hat{m}(x) from test set
-      print("the mean of m_x = " + str(np.round(np.mean(m_x),2)) + ", std. = " + str(np.round(np.std(m_x), 3)))
 
       # obtain \tilde{Y} = Y_{i} - \hat{m}(x)
       print("obtaining Y_tilde")
@@ -118,9 +116,9 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
 
       ## fit \hat{e}(x)
       print("training model for e(x)")
-      clf = LogisticRegressionCV(cv=folds, random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
+      clf = LogisticRegression(random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
       e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
-      print("the mean of e_x = " + str(np.round(np.mean(e_x),2)) + ", std. = " + str(np.round(np.std(e_x),3)))
+      print("the mean of e_x = " + str(np.round(np.mean(e_x[:,1]),2)) + ", std. = " + str(np.round(np.std(e_x),3)))
       
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
       print("obtaining T_tilde")
@@ -150,6 +148,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
           project_name="tau_hat",)
       tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
+      print("the optimal architecture is: " + str(best_hps_tau.values))
 
     cv = KFold(n_splits=folds)
     print("training for tau hat")
@@ -172,6 +171,6 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
 
       CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
     average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
-    print("ATE = " + str(np.round(np.mean(average_treatment_effect), 2)) + ", std(ATE) = " + str(np.round(np.std(average_treatment_effect), 3)))
+    print("ATE = " + str(np.round(np.mean(average_treatment_effect), 4)) + ", std(ATE) = " + str(np.round(np.std(average_treatment_effect), 3)))
 
   return average_treatment_effect, CATE_estimates, tau_hat
