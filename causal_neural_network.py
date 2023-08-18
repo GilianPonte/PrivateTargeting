@@ -90,9 +90,6 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     cv = KFold(n_splits=folds, shuffle = False) # K-fold validation shuffle is off to prevent additional noise?
 
     for k, (train_idx, test_idx) in enumerate(cv.split(X)):
-      random.seed(k)
-      np.random.seed(k)
-      tf.random.set_seed(k)
       #print("training model for m(x)")
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.fit(
@@ -152,9 +149,6 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     cv = KFold(n_splits=folds, shuffle = False)
     print("training for tau hat")
     for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
-      random.seed(k)
-      np.random.seed(k)
-      tf.random.set_seed(k)
 
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
       history_tau = tau_hat.fit(
