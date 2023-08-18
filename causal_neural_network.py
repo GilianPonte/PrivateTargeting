@@ -38,7 +38,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     model = keras.Sequential()
     model.add(keras.Input(shape=(X.shape[1],)))
     # Tune the number of layers.
-    for i in range(hp.Int("num_layers", 1, 8)):
+    for i in range(hp.Int("num_layers", 1, 10)):
         model.add(
             layers.Dense(
                 # Tune number of units separately.
@@ -85,7 +85,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       best_hps=tuner.get_best_hyperparameters()[0]
       print("the optimal architecture is: " + str(best_hps.values))
 
-    cv = KFold(n_splits=folds) # K-fold validation
+    cv = KFold(n_splits=folds, shuffle = True) # K-fold validation
 
     for k, (train_idx, test_idx) in enumerate(cv.split(X)):
       random.seed(k)
@@ -130,25 +130,23 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     epochs_train_loss_per_fold = []
     epochs_val_loss_per_fold = []
 
+    ## pseudo_outcome and weights
     pseudo_outcome = (y_tilde_hat/T_tilde_hat) # pseudo_outcome = \tilde{Y} / \tilde{T}
-
-    ## weights
     w_weigths = np.square(T_tilde_hat) # \tilde{T}**2
 
-    if i == 0:
-      print("hyperparameter optimization for tau hat")
-      tuner1 = keras_tuner.Hyperband(
+    print("hyperparameter optimization for tau hat")
+    tuner1 = keras_tuner.Hyperband(
           hypermodel=build_model,
           objective="val_loss",
           max_epochs=max_epochs,
           overwrite=True,
           directory=directory,
           project_name="tau_hat",)
-      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
-      best_hps_tau =tuner1.get_best_hyperparameters()[0]
-      print("the optimal architecture is: " + str(best_hps_tau.values))
+    tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
+    best_hps_tau =tuner1.get_best_hyperparameters()[0]
+    print("the optimal architecture is: " + str(best_hps_tau.values))
 
-    cv = KFold(n_splits=folds)
+    cv = KFold(n_splits=folds, shuffle = True)
     print("training for tau hat")
     for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
