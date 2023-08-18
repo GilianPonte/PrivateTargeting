@@ -56,8 +56,8 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     )
     return model
 
-  for i in range(0,simulations):
-    print("iterations = " + str(i))
+  for i in range(0,simulations + 1):
+    print("iteration = " + str(i))
     random.seed(i)
     np.random.seed(i)
     tf.random.set_seed(i)
