@@ -1,4 +1,4 @@
-def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, folds = 5, directory = "tuner"):
+def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner"):
   from sklearn.linear_model import LogisticRegressionCV
   from keras.layers import Activation, LeakyReLU
   from keras import backend as K
@@ -81,7 +81,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       tuner = keras_tuner.Hyperband(
         hypermodel=build_model,
         objective="val_loss",
-        max_epochs=int(epochs),
+        max_epochs= max_epochs,
         overwrite=True,
         directory=directory,
         project_name="yhat",)
@@ -108,7 +108,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       model_m_x.build(input_shape = (None,X.shape[1]))
       model_m_x.load_weights(checkpoint_filepath_mx)
       m_x = model_m_x.predict(x=X[test_idx], verbose = 0).reshape(len(Y[test_idx])) # obtain \hat{m}(x) from test set
-      print("the mean of e_x = " + str(np.mean(m_x)) + "the standard d. = " + str(np.std(m_x)))
+      print("the mean of m_x = " + str(np.round(np.mean(m_x),2)) + "the std. = " + str(np.round(np.std(m_x), 4)))
 
       # obtain \tilde{Y} = Y_{i} - \hat{m}(x)
       print("obtaining Y_tilde")
@@ -120,7 +120,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       print("training model for e(x)")
       clf = LogisticRegressionCV(cv=folds, random_state=0, verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
       e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
-      print("the mean of e_x = " + str(np.mean(e_x)) + "the standard d. = " + str(np.std(e_x)))
+      print("the mean of e_x = " + str(np.round(np.mean(e_x),2)) + "the std. = " + str(np.round(np.std(e_x),4)))
       
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
       print("obtaining T_tilde")
@@ -144,7 +144,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       tuner1 = keras_tuner.Hyperband(
           hypermodel=build_model,
           objective="val_loss",
-          max_epochs=int(epochs),
+          max_epochs=max_epochs,
           overwrite=True,
           directory=directory,
           project_name="tau_hat",)
@@ -171,7 +171,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
       CATE = tau_hat.predict(x=X[test_idx], verbose = 0).reshape(len(X[test_idx]))
 
       CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
-    average_treatment_effect = np.append(average_treatment_effect,np.mean(CATE_estimates))
+    average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
     print("ATE = " + str(np.mean(average_treatment_effect)) + "std(ATE) = " + str(np.std(average_treatment_effect)))
 
   return average_treatment_effect, CATE_estimates, tau_hat
