@@ -63,8 +63,8 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     tf.random.set_seed(i)
 
     # save models
-    checkpoint_filepath_mx = 'm_x_'+ str(i) + '.hdf5'
-    checkpoint_filepath_taux = 'tau_x' + str(i) + '.hdf5'
+    checkpoint_filepath_mx = 'm_x_'+ str(i+1) + '.hdf5'
+    checkpoint_filepath_taux = 'tau_x' + str(i+1) + '.hdf5'
     mx_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
     tau_hat_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_taux, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
 
@@ -134,17 +134,18 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     pseudo_outcome = (y_tilde_hat/T_tilde_hat) # pseudo_outcome = \tilde{Y} / \tilde{T}
     w_weigths = np.square(T_tilde_hat) # \tilde{T}**2
 
-    print("hyperparameter optimization for tau hat")
-    tuner1 = keras_tuner.Hyperband(
+    if i == 0:
+      print("hyperparameter optimization for tau hat")
+      tuner1 = keras_tuner.Hyperband(
           hypermodel=build_model,
           objective="val_loss",
           max_epochs=max_epochs,
           overwrite=True,
           directory=directory,
           project_name="tau_hat",)
-    tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
-    best_hps_tau =tuner1.get_best_hyperparameters()[0]
-    print("the optimal architecture is: " + str(best_hps_tau.values))
+      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
+      best_hps_tau =tuner1.get_best_hyperparameters()[0]
+      print("the optimal architecture is: " + str(best_hps_tau.values))
 
     cv = KFold(n_splits=folds, shuffle = False)
     print("training for tau hat")
