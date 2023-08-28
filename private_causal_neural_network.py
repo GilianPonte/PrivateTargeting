@@ -68,6 +68,12 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
     random.seed(i)
     np.random.seed(i)
     tf.random.set_seed(i)
+    
+    # for epsilon calculation
+    idx = np.random.permutation(X.index)
+    X = X.reindex(idx)
+    Y = Y.reindex(idx)
+    T = T.reindex(idx)
 
     # save models
     checkpoint_filepath_mx = 'm_x_'+ str(i+1) + '.hdf5'
