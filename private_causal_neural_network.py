@@ -1,4 +1,4 @@
-def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", noise_multiplier = 1):
+def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", noise_multiplier = 1, l2_norm_clip = 4):
   from sklearn.linear_model import LogisticRegressionCV
   from keras.layers import Activation, LeakyReLU
   from keras import backend as K
@@ -6,10 +6,12 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
   import math
   try:
     import tensorflow_privacy
+    from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
   except:
     print("installing tensorflow privacy")
     !pip install tensorflow_privacy -q
     import tensorflow_privacy
+    from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
   try:
     import keras_tuner
   except:
@@ -25,7 +27,7 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
 
   # calculate epsilon
   epsilon = tensorflow_privacy.compute_dp_sgd_privacy(n = len(X), batch_size = batch_size, noise_multiplier = noise_multiplier, epochs = epochs, delta = 1/len(X))[0]
-  print("epsilon  = " +  str(epsilon) + " , the privacy risk increases with " + str(np.round(math.exp(epsilon)*100, 2)) + " percent" )
+  print("epsilon  = " +  str(epsilon) + ", the privacy risk increases with " + str(np.round(math.exp(epsilon)*100, 2)) + " percent" )
 
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
@@ -76,10 +78,10 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
     tf.random.set_seed(i)
     
     # for epsilon calculation
-    idx = np.random.permutation(X.index)
-    X = X.reindex(idx)
-    Y = Y.reindex(idx)
-    T = T.reindex(idx)
+    idx = np.random.permutation(pd.DataFrame(X).index)
+    X = np.array(pd.DataFrame(X).reindex(idx))
+    Y = np.array(pd.DataFrame(Y).reindex(idx))
+    T = np.array(pd.DataFrame(T).reindex(idx))
 
     # save models
     checkpoint_filepath_mx = 'm_x_'+ str(i+1) + '.hdf5'
