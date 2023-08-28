@@ -1,10 +1,11 @@
-def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", noise_multiplier = noise_multiplier):
+def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", noise_multiplier = 1):
   from sklearn.linear_model import LogisticRegressionCV
   from keras.layers import Activation, LeakyReLU
   from keras import backend as K
   from keras.utils import get_custom_objects
+  import math
   try:
-  import tensorflow_privacy
+    import tensorflow_privacy
   except:
     print("installing tensorflow privacy")
     !pip install tensorflow_privacy -q
@@ -21,6 +22,10 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
   from tensorflow import keras
   from keras import layers
   from sklearn.model_selection import KFold
+
+  # calculate epsilon
+  epsilon = tensorflow_privacy.compute_dp_sgd_privacy(n = len(X), batch_size = batch_size, noise_multiplier = noise_multiplier, epochs = 10, delta = 1/len(X))[0]
+  print("epsilon  = " +  str(epsilon) + " , the privacy risk increases with " + str(math.exp(epsilon)*100) + "percent" )
 
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
@@ -147,24 +152,11 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
     pseudo_outcome = (y_tilde_hat/T_tilde_hat) # pseudo_outcome = \tilde{Y} / \tilde{T}
     w_weigths = np.square(T_tilde_hat) # \tilde{T}**2
 
-    if i == 0:
-      print("hyperparameter optimization for tau hat")
-      tuner1 = keras_tuner.Hyperband(
-          hypermodel=build_model,
-          objective="val_loss",
-          max_epochs=max_epochs,
-          overwrite=True,
-          directory=directory,
-          project_name="tau_hat",)
-      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
-      best_hps_tau =tuner1.get_best_hyperparameters()[0]
-      print("the optimal architecture is: " + str(best_hps_tau.values))
-
     cv = KFold(n_splits=folds, shuffle = False)
     print("training for tau hat")
     for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
-
-      tau_hat = tuner1.hypermodel.build(best_hps_tau)
+      tau_hat = tuner.hypermodel.build(best_hps)
+      tau_hat.compile(optimizer=DPKerasAdamOptimizer(l2_norm_clip=l2_norm_clip, noise_multiplier=noise_multiplier, num_microbatches=batch_size, learning_rate=0.001), loss= tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE])
       history_tau = tau_hat.fit(
           X[train_idx],
           pseudo_outcome[train_idx],
@@ -174,7 +166,7 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
           callbacks = tau_hat_callbacks,
           validation_data = (X[test_idx], pseudo_outcome[test_idx]),
           verbose = 0)
-      tau_hat = tuner1.hypermodel.build(best_hps_tau)
+      tau_hat = tuner.hypermodel.build(best_hps)
       tau_hat.build(input_shape = (None,X.shape[1]))
       tau_hat.load_weights(checkpoint_filepath_taux)
       CATE = tau_hat.predict(x=X[test_idx], verbose = 0).reshape(len(X[test_idx]))
@@ -184,4 +176,4 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
     average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
     print("ATE = " + str(np.round(np.mean(average_treatment_effect), 4)) + ", std(ATE) = " + str(np.round(np.std(average_treatment_effect), 3)))
 
-  return average_treatment_effect, CATE_estimates, tau_hat
+  return average_treatment_effect, CATE_estimates, tau_hat, epsilon
