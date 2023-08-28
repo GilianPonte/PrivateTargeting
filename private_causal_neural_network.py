@@ -26,8 +26,8 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
   from sklearn.model_selection import KFold
 
   # calculate epsilon
-  epsilon = tensorflow_privacy.compute_dp_sgd_privacy(n = len(X), batch_size = batch_size, noise_multiplier = noise_multiplier, epochs = epochs, delta = 1/len(X))[0]
-  print("epsilon  = " +  str(np.round(epsilon,2)) + ", the privacy risk increases with " + str(np.round((math.exp(epsilon)-1)*100, 2)) + " percent" )
+  epsilon = np.round(tensorflow_privacy.compute_dp_sgd_privacy(n = len(X), batch_size = batch_size, noise_multiplier = noise_multiplier, epochs = epochs, delta = 1/len(X))[0],2)
+  print("epsilon  = " +  str(epsilon) + ", the privacy risk increases with " + str(np.round((math.exp(epsilon)-1)*100, 2)) + " percent" )
 
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
@@ -84,7 +84,7 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
     T = np.array(pd.DataFrame(T).reindex(idx))
 
     # save models
-    checkpoint_filepath_mx = 'm_x_'+ str(i+1) + '.hdf5'
+    checkpoint_filepath_mx = 'm_x_'+ str(i+1) + str(epsilon) + '.hdf5'
     checkpoint_filepath_taux = 'tau_x' + str(i+1) + '.hdf5'
     mx_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
     tau_hat_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_taux, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
