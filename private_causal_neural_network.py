@@ -27,7 +27,7 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
 
   # calculate epsilon
   epsilon = tensorflow_privacy.compute_dp_sgd_privacy(n = len(X), batch_size = batch_size, noise_multiplier = noise_multiplier, epochs = epochs, delta = 1/len(X))[0]
-  print("epsilon  = " +  str(np.round(epsilon),2) + ", the privacy risk increases with " + str(np.round(math.exp(epsilon)*100, 2)) + " percent" )
+  print("epsilon  = " +  str(np.round(epsilon),2) + ", the privacy risk increases with " + str(np.round((math.exp(epsilon)-1)*100, 2)) + " percent" )
 
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
