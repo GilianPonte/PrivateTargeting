@@ -1,4 +1,4 @@
-def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", noise_multiplier = 1, l2_norm_clip = 4):
+def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", noise_multiplier = 1):
   from sklearn.linear_model import LogisticRegressionCV
   from keras.layers import Activation, LeakyReLU
   from keras import backend as K
@@ -18,7 +18,7 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
     print("installing keras tuner")
     !pip install keras_tuner -q
     import keras_tuner
-    
+
   import random
   import tensorflow as tf
   from tensorflow import keras
@@ -76,7 +76,7 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
     random.seed(i)
     np.random.seed(i)
     tf.random.set_seed(i)
-    
+
     # for epsilon calculation
     idx = np.random.permutation(pd.DataFrame(X).index)
     X = np.array(pd.DataFrame(X).reindex(idx))
@@ -159,7 +159,7 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
     print("training for tau hat")
     for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
       tau_hat = tuner.hypermodel.build(best_hps)
-      tau_hat.compile(optimizer=DPKerasAdamOptimizer(l2_norm_clip=l2_norm_clip, noise_multiplier=noise_multiplier, num_microbatches=batch_size, learning_rate=0.001), loss= tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE])
+      tau_hat.compile(optimizer=DPKerasAdamOptimizer(l2_norm_clip=4, noise_multiplier=noise_multiplier, num_microbatches=batch_size, learning_rate=0.001), loss= tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE])
       history_tau = tau_hat.fit(
           X[train_idx],
           pseudo_outcome[train_idx],
