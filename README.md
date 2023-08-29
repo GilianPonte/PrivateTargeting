@@ -24,7 +24,7 @@ Returns:
 ## private_causal_neural_network.py
 We provide a function that replicates our estimator of the CATE in private_causal_neural_network.py. This function requires the following parameters: 
 
-1:10 same as the above
+1. to 10. same as the above.
 11. `noise_multiplier`: parameter to control the amount of privacy risk you are willing to sacrifice.
 12. `l2_norm_clip`: parameter to control the sensitivity of the gradient (default = 4).
 
