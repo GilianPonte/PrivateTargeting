@@ -1,5 +1,5 @@
-# Causal Neural Network.
-In this repository, we open-source the causal neural network from our paper. This library allows you to estimate the CATE of any targeting intervention.
+# Private Causal Neural Networks.
+In this repository, we open-source the (private) causal neural network from our paper. This library allows you to estimate the CATE of any targeting intervention while preserving the privacy of your subjects in a meaningful way.
 
 ## causal_neural_network function
 We provide a function that replicates our estimator of the CATE in causal_neural_network.py. This function requires the following parameters: 
