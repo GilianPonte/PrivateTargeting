@@ -26,7 +26,6 @@ We provide a function that replicates our estimator of the CATE in private_causa
 
 1. to 10. same as the above.
 11. `noise_multiplier`: parameter to control the amount of privacy risk you are willing to sacrifice.
-12. `l2_norm_clip`: parameter to control the sensitivity of the gradient (default = 4).
 
 Returns: 
 1. `average_treatment_effect`: the average treatment effect.
