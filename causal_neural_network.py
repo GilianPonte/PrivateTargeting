@@ -30,6 +30,12 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     scaler0 = MinMaxScaler(feature_range = (-1, 1))
     scaler0 = scaler0.fit(X)
     X = scaler0.transform(X)
+    X = pd.DataFrame(X)
+
+  # get index to speed up tuning
+  idx = pd.DataFrame(pd.DataFrame(X).index).sample(1000).index
+  Y_tuning = pd.DataFrame(Y).iloc[idx]
+  X_tuning = pd.DataFrame(X).iloc[idx,:]
 
   ## Add leaky-relu so we can use it as a string
   get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
@@ -82,7 +88,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
         overwrite=True,
         directory=directory,
         project_name="yhat",)
-      tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0)
+      tuner.search(X_tuning, Y_tuning, epochs = epochs, validation_split=0.25, verbose = 1)
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
       print("the optimal architecture is: " + str(best_hps.values))
@@ -143,7 +149,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
           overwrite=True,
           directory=directory,
           project_name="tau_hat",)
-      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0)
+      tuner1.search(X[idx,:], pseudo_outcome[idx], epochs=epochs, validation_split=0.25, verbose = 1)
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
       print("the optimal architecture is: " + str(best_hps_tau.values))
 
