@@ -30,7 +30,6 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     scaler0 = MinMaxScaler(feature_range = (-1, 1))
     scaler0 = scaler0.fit(X)
     X = scaler0.transform(X)
-    X = pd.DataFrame(X)
 
   # get index to speed up tuning
   idx = pd.DataFrame(pd.DataFrame(X).index).sample(1000).index
