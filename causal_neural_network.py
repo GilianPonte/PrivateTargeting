@@ -17,6 +17,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
 
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
+  callback1 = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
 
   # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
   def ATE(y_true, y_pred):
@@ -30,11 +31,6 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     scaler0 = MinMaxScaler(feature_range = (-1, 1))
     scaler0 = scaler0.fit(X)
     X = scaler0.transform(X)
-
-  # get index to speed up tuning
-  idx = pd.DataFrame(pd.DataFrame(X).index).sample(1000).index
-  Y_tuning = pd.DataFrame(Y).iloc[idx]
-  X_tuning = pd.DataFrame(X).iloc[idx,:]
 
   ## Add leaky-relu so we can use it as a string
   get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
@@ -67,6 +63,12 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
     np.random.seed(i)
     tf.random.set_seed(i)
 
+    # shuffle data
+    idx = np.random.permutation(pd.DataFrame(X).index)
+    X = np.array(pd.DataFrame(X).reindex(idx))
+    Y = np.array(pd.DataFrame(Y).reindex(idx))
+    T = np.array(pd.DataFrame(T).reindex(idx))
+
     # save models
     checkpoint_filepath_mx = 'm_x_'+ str(i+1) + '.hdf5'
     checkpoint_filepath_taux = 'tau_x' + str(i+1) + '.hdf5'
@@ -87,7 +89,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
         overwrite=True,
         directory=directory,
         project_name="yhat",)
-      tuner.search(X_tuning, Y_tuning, epochs = epochs, validation_split=0.25, verbose = 1)
+      tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
       # Get the optimal hyperparameters
       best_hps=tuner.get_best_hyperparameters()[0]
       print("the optimal architecture is: " + str(best_hps.values))
@@ -148,7 +150,7 @@ def causal_neural_network(X, Y, T, scaling = True, simulations = 1, batch_size =
           overwrite=True,
           directory=directory,
           project_name="tau_hat",)
-      tuner1.search(X[idx,:], pseudo_outcome[idx], epochs=epochs, validation_split=0.25, verbose = 1)
+      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0, callbacks = [callback1])
       best_hps_tau =tuner1.get_best_hyperparameters()[0]
       print("the optimal architecture is: " + str(best_hps_tau.values))
 
