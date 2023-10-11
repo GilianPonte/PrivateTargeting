@@ -212,3 +212,24 @@ def private_causal_neural_network(X, Y, T, scaling = True, simulations = 1, batc
     print("ATE = " + str(np.round(np.mean(average_treatment_effect), 4)) + ", std(ATE) = " + str(np.round(np.std(average_treatment_effect), 3)))
 
   return average_treatment_effect, CATE_estimates, tau_hat, CATE_estimates_in_sample, tau_hat_in_sample
+
+dataframe = pd.read_csv('data.csv', sep = ',', header = 0)
+X = dataframe.iloc[:,1:121]
+T = dataframe.iloc[:,121]
+Y = dataframe.iloc[:,122]
+
+X = np.array(X) # features
+T = np.array(T) # treatment indicator
+Y = np.array(Y) # revenue indicator
+
+# noise_multipliers = [0.17596322,0.174706, 0.205648,0.225241, 0.80114, 1.4235, 6.34, 53]
+noise_multiplier = 0.17596322
+average_treatment_effect, CATE_estimates, tau_hat, CATE_estimates_in_sample, tau_hat_in_sample = private_causal_neural_network(X = X, Y = Y, T = T, scaling = True, simulations = 1, epochs = 100,
+                                                                                  max_epochs = 1, batch_size = 500, folds = 2, directory = "tuner_noise_500000",
+                                                                                  noise_multiplier = noise_multiplier, propensity = 0)
+np.savetxt("CATE_estimates_500000_tuning.csv", CATE_estimates, delimiter = ",")
+np.savetxt("average_treatment_effect_500000_tuning.csv", average_treatment_effect, delimiter = ",")
+tau_hat.save(filepath = "tauhat_500000_tuning")
+%rm -rf tuner_noise_500000
+%rm -rf m_x_1
+%rm -rf tau_x1
