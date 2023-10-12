@@ -222,7 +222,7 @@ X = np.array(X) # features
 T = np.array(T) # treatment indicator
 Y = np.array(Y) # revenue indicator
 
-# noise_multipliers = [0.17596322, 0.200976, 0.4785, 0.8, 1.423, 6.3, 53] USED noise multipliers in STUDY
+# noise_multipliers = [0.17596322, 0.200976, 0.218153, 0.4785, 0.8, 1.423, 6.3, 53] USED noise multipliers in STUDY
 noise_multiplier = 0.17596322
 average_treatment_effect, CATE_estimates, tau_hat, CATE_estimates_in_sample, tau_hat_in_sample = private_causal_neural_network(X = X, Y = Y, T = T, scaling = True, simulations = 1, epochs = 100,
                                                                                   max_epochs = 1, batch_size = 500, folds = 2, directory = "tuner_noise_500000",
