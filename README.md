@@ -1,4 +1,4 @@
-# Private Causal Neural Networks.
+# Private Causal Neural Networks (PCNNs).
 In this repository, we open-source the (private) causal neural network from our paper. This library allows you to estimate the CATE of any targeting intervention while preserving the privacy of your subjects in a meaningful way.
 
 ## causal_neural_network.py
