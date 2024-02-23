@@ -28,6 +28,7 @@ def CNN(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
 
   ## scale the data for well-behaved gradients
   if scaling == True:
+    from sklearn.preprocessing import MinMaxScaler
     scaler0 = MinMaxScaler(feature_range = (-1, 1))
     scaler0 = scaler0.fit(X)
     X = scaler0.transform(X)
