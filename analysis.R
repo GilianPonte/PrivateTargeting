@@ -2752,8 +2752,9 @@ summary(data)
 results_in_in_sample = c()
 results_in_in_sample_uplift = c()
 results_in_in_sample_revenue = c() 
-percentage = c(0.01,0.05) # ,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.50,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,0.99
+percentage = c(0.05, 0.1, 0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.50,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,0.99)
 for (percent in percentage){
+  print(percent)
   top = floor(nrow(data) * percent)
   data$customer = 1:nrow(data)
   data$selection_tau = 0
@@ -2771,7 +2772,7 @@ for (percent in percentage){
   pop = data$selection_tau
   epsilon_range = c(0.05,0.5,1,3,5)
   for (epsilon in epsilon_range){
-    print(epsilon)
+    #print(epsilon)
     P = matrix(nrow = 2, ncol = 2)
     diag(P) = (exp(epsilon))/(2-1+exp(epsilon))
     P[is.na(P)==T] = (1)/(2-1+exp(epsilon))
@@ -2847,12 +2848,13 @@ for (percent in percentage){
               overlap_1 = table(selection_tau, selection_tau_1)[2,2]/sum(selection_tau),
               overlap_3 = table(selection_tau, selection_tau_3)[2,2]/sum(selection_tau),
               overlap_5 = table(selection_tau, selection_tau_5)[2,2]/sum(selection_tau))
-  uplift = data %>% dplyr::select(tau,cost, selection_tau, selection_tau_005, 
+  
+  uplift = data %>% dplyr::select(causal_neural_network, cost, selection_tau, selection_tau_005, 
                                    selection_tau_05,selection_tau_1,selection_tau_3,selection_tau_5, 
                                    random) %>% 
     pivot_longer(c(selection_tau, selection_tau_005, selection_tau_05,selection_tau_1,
                    selection_tau_3,selection_tau_5, random)) %>% 
-    group_by(name) %>% summarize(profit = (sum(tau*value) - sum(cost*value)))
+    group_by(name) %>% summarize(profit = (sum(causal_neural_network*value) - sum(cost*value)))
   
   
   overlap$percentage = percent
@@ -2864,6 +2866,10 @@ for (percent in percentage){
 results_in_in_sample
 results_in_in_sample_uplift
 
+#saveRDS(results_in_in_sample,"results_in_in_sample.RDS")
+#saveRDS(results_in_in_sample_uplift,"results_in_in_sample_uplift.RDS")
+results_in_in_sample_uplift = readRDS("results_in_in_sample_uplift.RDS")
+
 results_in_in_sample_uplift$name[results_in_in_sample_uplift$name == "selection_tau"] = "CNN"
 results_in_in_sample_uplift$name[results_in_in_sample_uplift$name == "selection_tau_005"] = "0.05"
 results_in_in_sample_uplift$name[results_in_in_sample_uplift$name == "selection_tau_05"] = "0.5"
@@ -2872,32 +2878,219 @@ results_in_in_sample_uplift$name[results_in_in_sample_uplift$name == "selection_
 results_in_in_sample_uplift$name[results_in_in_sample_uplift$name == "selection_tau_5"] = "5"
 results_in_in_sample_uplift$name[results_in_in_sample_uplift$name == "selection_true"] = "real"
 
-uplift_plot_in_sample = results_in_in_sample_uplift %>% filter(name != "CNN") %>%
-  ggplot(aes(x = percentage*100, y = profit, color = name)) + geom_point(size = 2.5) +geom_line() + annotate(
-    'text',
-    x = 20,
-    y = 820,
-    label = 'Privacy protected policies are closer \n to true policy.', 
-    size = 4
-  ) + annotate(
-    'curve',
-    x = 20, # Play around with the coordinates until you're satisfied
-    y = 810,
-    yend = 700,
-    xend = 30,
-    linewidth = 0.5,
-    curvature = 0.2,
-    arrow = arrow(length = unit(0.2, 'cm'))
-  ) + theme_bw() +
+results_in_in_sample_uplift$name = factor(results_in_in_sample_uplift$name, levels = c("0.05", "0.5", "1", "3", "5", "random", "revenue", "CNN"))
+
+results_in_in_sample_uplift = results_in_in_sample_uplift %>%
+  ggplot(aes(x = percentage*100, y = profit, color = name)) + geom_point(size = 2.5) +geom_line() + theme_bw() + 
   theme(text = element_text(size = 13), axis.text = element_text(size = 13, color = "black"),
-        axis.text.x = element_text(size = 13), strip.text = element_text(size = 13)) + 
-  scale_shape_manual(name = "Targeting Policy",values = 1:length(unique(results_in_in_sample_uplift$name))) + 
+        axis.text.x = element_text(size = 13), strip.text = element_text(size = 13))  + 
   theme(legend.text=element_text(size=13)) + 
   ylab("profit") + xlab("top % targeted") + 
   guides(color=guide_legend(title="Targeting Policies"), name = guide_legend(title="Targeting Policy")) + 
-  scale_x_continuous(labels = scales::comma, breaks = c(0,10,20,30,40,50,60,70,80,90,99)) + theme(legend.position="bottom") +  
-  scale_color_manual(values = c("purple", "#ddb321", "blue",  "grey", "#9ea900", "red", "darkgreen"))
+  scale_x_continuous(labels = scales::comma, breaks = c(0,10,20,30,40,50,60,70,80,90,99)) +
+  scale_y_continuous(labels = scales::comma, breaks = c(0,10e4,20e4,30e4,40e4,50e4,6e5,7e5,8e5,9e5,1e6,1.1e6))  +
+  theme(legend.position="bottom") +  
+  scale_color_manual(values = c("purple", "#ddb321", "blue", "grey", "#9ea900", "red", "black", "darkgreen"))   +
+  annotate('text',x = 70,y = 150000,label = 'The profit levels have improved \n compared to the previous strategy.', size = 4)
 
+# overlap 
+
+results_in_in_sample = readRDS("results_in_in_sample.RDS")
+results_in_in_sample = results_in_in_sample %>% pivot_longer(cols = c(overlap_random,overlap_005, overlap_05, overlap_1, overlap_3,overlap_5))
+results_in_in_sample$name[results_in_in_sample$name == "overlap_005"] = "e = 0.05"
+results_in_in_sample$name[results_in_in_sample$name == "overlap_05"] = "e = 0.5"
+results_in_in_sample$name[results_in_in_sample$name == "overlap_1"] = "e = 1"
+results_in_in_sample$name[results_in_in_sample$name == "overlap_3"] = "e = 3"
+results_in_in_sample$name[results_in_in_sample$name == "overlap_5"] = "e = 5"
+results_in_in_sample$name[results_in_in_sample$name == "overlap_revenue"] = "revenue"
+results_in_in_sample$name[results_in_in_sample$name == "overlap_random"] = "random"
+
+overlap_in_field = results_in_in_sample %>% 
+  ggplot(aes(x = percentage*100, y = value*100, color = name)) + geom_point(size = 2.5) +geom_line() + ylab("overlap (in %)") + xlab("top % targeted") + 
+  guides(color=guide_legend(title="Targeting Policy"), name = guide_legend(title="Targeting Policy")) +  
+  theme_bw(base_size = 13) + theme(text = element_text(size = 13), axis.text = element_text(size = 13, color = "black"), axis.text.x = element_text(size = 13), strip.text = element_text(size = 13)) + scale_shape_manual(name = "Targeting Policy",values = 1:length(unique(overlap$name))) + theme(legend.text=element_text(size=12)) + 
+  scale_y_continuous(labels = scales::comma, breaks = c(0,10,20,30,40,50,60,70,80,90, 99)) + 
+  scale_x_continuous(labels = scales::comma, breaks = c(0,10,20,30,40,50,60,70,80,90,99)) + 
+  theme(legend.position="bottom", legend.box="vertical") +
+  scale_color_manual(values = c("purple", "#ddb321", "blue", "grey",  "darkgreen", "red", "black")) + 
+  annotate('text',x = 40,y = 80, 
+           label = 'The overlap has once again increased, \n which drives the increase in profit.', 
+           size = 4) + 
+  annotate('curve', x = 40, y = 85, yend = 92, xend = 35, linewidth = 0.5, 
+           curvature = 0.2,arrow = arrow(length = unit(0.2, 'cm'))) + 
+  annotate('curve', x = 40, y = 85, yend = 97, xend = 35, linewidth = 0.5, 
+           curvature = 0.2,arrow = arrow(length = unit(0.2, 'cm')))
+overlap_in_field
+
+
+# out of sample
+results_in_out_sample = c()
+results_in_out_sample_uplift = c()
+results_in_out_sample_revenue = c() 
+percentage = c(0.05, 0.1, 0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.50,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,0.99)
+for (percent in percentage){
+  print(percent)
+  top = floor(nrow(jo) * percent)
+  jo$customer = 1:nrow(jo)
+  jo$selection_tau = 0
+  jo$selection_tau_3 = 0
+  jo$selection_tau_1 = 0
+  jo$selection_tau_05 = 0
+  jo$selection_tau_005 = 0
+  jo$selection_tau_5 = 0
+  jo$random = sample(x = c(0,1), size = nrow(jo), replace = TRUE, prob= c(1-percent,percent))
+  jo$cost = 0.5
+  jo$selection_tau[as.data.frame(sort(jo$TAU_HAT, 
+                                        decreasing = TRUE, index.return = T))$ix[1:top]] = 1
+  
+  # now with local dp
+  pop = jo$selection_tau
+  epsilon_range = c(0.05,0.5,1,3,5)
+  for (epsilon in epsilon_range){
+    #print(epsilon)
+    P = matrix(nrow = 2, ncol = 2)
+    diag(P) = (exp(epsilon))/(2-1+exp(epsilon))
+    P[is.na(P)==T] = (1)/(2-1+exp(epsilon))
+    
+    responses = c()
+    for (i in 1:length(pop)){
+      #print(i)
+      if(pop[i] == 0){responses = rbind(responses, sample(x = c(1:2)-1,size = 1,prob= P[1,]))}
+      else{responses = rbind(responses, sample(x = c(1:2)-1,size = 1,prob=P[2,]))}
+    }
+    if(epsilon == 0.5){
+      jo$selection_tau_05 = responses 
+      index05_0 = which(jo$selection_tau_05 == 0)
+      index05 = which(jo$selection_tau_05 == 1)
+      jo$selection_tau_05 = 0
+      if(top > length(index05)){
+        jo$selection_tau_05[sample(index05, length(index05))] = 1
+        jo$selection_tau_05[sample(index05_0, top - length(index05))] = 1
+      }else{
+        jo$selection_tau_05[sample(index05, top)] = 1
+      }
+    } else if(epsilon == 0.05){
+      jo$selection_tau_005 = responses 
+      index005_0 = which(jo$selection_tau_005 == 0)
+      index005 = which(jo$selection_tau_005 == 1)
+      jo$selection_tau_005 = 0
+      if(top > length(index005)){
+        jo$selection_tau_005[sample(index005, length(index005))] = 1
+        jo$selection_tau_005[sample(index005_0, top - length(index005))] = 1
+      }else{
+        jo$selection_tau_005[sample(index005, top)] = 1
+      }
+    } else if(epsilon == 5){
+      jo$selection_tau_5 = responses 
+      index5_0 = which(jo$selection_tau_5 == 0)
+      index5 = which(jo$selection_tau_5 == 1)
+      jo$selection_tau_5 = 0
+      if(top > length(index5)){
+        jo$selection_tau_5[sample(index5, length(index5))] = 1
+        jo$selection_tau_5[sample(index5_0, top - length(index5))] = 1
+      }else{
+        jo$selection_tau_5[sample(index5, top)] = 1
+      }
+    } else if(epsilon == 1){
+      jo$selection_tau_1 = responses 
+      index1_0 = which(jo$selection_tau_1 == 0)
+      index1 = which(jo$selection_tau_1 == 1)
+      jo$selection_tau_1 = 0
+      if(top > length(index1)){
+        jo$selection_tau_1[sample(index1, length(index1))] = 1
+        jo$selection_tau_1[sample(index1_0, top - length(index1))] = 1
+      }else{
+        jo$selection_tau_1[sample(index1, top)] = 1
+      }
+    } else {
+      jo$selection_tau_3 = responses 
+      index3_0 = which(jo$selection_tau_3 == 0)
+      index3 = which(jo$selection_tau_3 == 1)
+      jo$selection_tau_3 = 0
+      if(top > length(index3)){
+        jo$selection_tau_3[sample(index3, length(index3))] = 1
+        jo$selection_tau_3[sample(index3_0, top - length(index3))] = 1
+      }else{
+        jo$selection_tau_3[sample(index3, top)] = 1
+      }
+    }
+  }
+  overlap = jo %>% dplyr::select(customer, selection_tau, selection_tau_005, selection_tau_05,
+                                   selection_tau_1,selection_tau_3,selection_tau_5, random) %>% 
+    summarize(overlap_random = table(selection_tau, random)[2,2]/sum(selection_tau),
+              overlap_05 = table(selection_tau, selection_tau_05)[2,2]/sum(selection_tau),
+              overlap_005 = table(selection_tau, selection_tau_005)[2,2]/sum(selection_tau),
+              overlap_1 = table(selection_tau, selection_tau_1)[2,2]/sum(selection_tau),
+              overlap_3 = table(selection_tau, selection_tau_3)[2,2]/sum(selection_tau),
+              overlap_5 = table(selection_tau, selection_tau_5)[2,2]/sum(selection_tau))
+  
+  uplift = jo %>% dplyr::select(TAU_HAT, cost, selection_tau, selection_tau_005, 
+                                  selection_tau_05,selection_tau_1,selection_tau_3,selection_tau_5, 
+                                  random) %>% 
+    pivot_longer(c(selection_tau, selection_tau_005, selection_tau_05,selection_tau_1,
+                   selection_tau_3,selection_tau_5, random)) %>% 
+    group_by(name) %>% summarize(profit = (sum(TAU_HAT*value) - sum(cost*value)))
+  
+  
+  overlap$percentage = percent
+  uplift$percentage = percent
+  
+  results_in_out_sample = rbind(results_in_out_sample, overlap)
+  results_in_out_sample_uplift = rbind(results_in_out_sample_uplift, uplift)
+}
+results_in_out_sample
+results_in_out_sample_uplift
+
+#saveRDS(results_in_out_sample,"results_in_out_sample.RDS")
+#saveRDS(results_in_out_sample_uplift,"results_in_out_sample_uplift.RDS")
+results_in_out_sample_uplift = readRDS("results_in_out_sample_uplift.RDS")
+
+results_in_out_sample_uplift$name[results_in_out_sample_uplift$name == "selection_tau"] = "CNN"
+results_in_out_sample_uplift$name[results_in_out_sample_uplift$name == "selection_tau_005"] = "0.05"
+results_in_out_sample_uplift$name[results_in_out_sample_uplift$name == "selection_tau_05"] = "0.5"
+results_in_out_sample_uplift$name[results_in_out_sample_uplift$name == "selection_tau_1"] = "1"
+results_in_out_sample_uplift$name[results_in_out_sample_uplift$name == "selection_tau_3"] = "3"
+results_in_out_sample_uplift$name[results_in_out_sample_uplift$name == "selection_tau_5"] = "5"
+results_in_out_sample_uplift$name[results_in_out_sample_uplift$name == "selection_true"] = "real"
+
+results_in_out_sample_uplift$name = factor(results_in_out_sample_uplift$name, levels = c("0.05", "0.5", "1", "3", "5", "random", "revenue", "CNN"))
+
+results_in_out_sample_uplift = results_in_out_sample_uplift %>%
+  ggplot(aes(x = percentage*100, y = profit, color = name)) + geom_point(size = 2.5) +geom_line() + theme_bw() + 
+  theme(text = element_text(size = 13), axis.text = element_text(size = 13, color = "black"),
+        axis.text.x = element_text(size = 13), strip.text = element_text(size = 13))  + 
+  theme(legend.text=element_text(size=13)) + 
+  ylab("profit") + xlab("top % targeted") + 
+  guides(color=guide_legend(title="Targeting Policies"), name = guide_legend(title="Targeting Policy")) + 
+  scale_x_continuous(labels = scales::comma, breaks = c(0,10,20,30,40,50,60,70,80,90,99)) +
+  scale_y_continuous(labels = scales::comma, breaks = c(0,10e4,20e4,30e4,40e4,50e4,6e5,7e5,8e5,9e5,1e6,1.1e6))  +
+  theme(legend.position="bottom") +  
+  scale_color_manual(values = c("purple", "#ddb321", "blue", "grey", "#9ea900", "red", "black"))
+
+# overlap 
+results_in_out_sample = readRDS("results_in_out_sample.RDS")
+results_in_out_sample = results_in_out_sample %>% pivot_longer(cols = c(overlap_random,overlap_005, overlap_05, overlap_1, overlap_3,overlap_5))
+results_in_out_sample$name[results_in_out_sample$name == "overlap_005"] = "e = 0.05"
+results_in_out_sample$name[results_in_out_sample$name == "overlap_05"] = "e = 0.5"
+results_in_out_sample$name[results_in_out_sample$name == "overlap_1"] = "e = 1"
+results_in_out_sample$name[results_in_out_sample$name == "overlap_3"] = "e = 3"
+results_in_out_sample$name[results_in_out_sample$name == "overlap_5"] = "e = 5"
+results_in_out_sample$name[results_in_out_sample$name == "overlap_revenue"] = "revenue"
+results_in_out_sample$name[results_in_out_sample$name == "overlap_random"] = "random"
+
+overlap_out_field = results_in_out_sample %>% 
+  ggplot(aes(x = percentage*100, y = value*100, color = name)) + geom_point(size = 2.5) +geom_line() + ylab("overlap (in %)") + xlab("top % targeted") + 
+  guides(color=guide_legend(title="Targeting Policy"), name = guide_legend(title="Targeting Policy")) +  
+  theme_bw(base_size = 13) + theme(text = element_text(size = 13), axis.text = element_text(size = 13, color = "black"), axis.text.x = element_text(size = 13), strip.text = element_text(size = 13)) + scale_shape_manual(name = "Targeting Policy",values = 1:length(unique(overlap$name))) + theme(legend.text=element_text(size=12)) + 
+  scale_y_continuous(labels = scales::comma, breaks = c(0,10,20,30,40,50,60,70,80,90, 99)) + 
+  scale_x_continuous(labels = scales::comma, breaks = c(0,10,20,30,40,50,60,70,80,90,99)) + 
+  theme(legend.position="bottom", legend.box="vertical") +
+  scale_color_manual(values = c("purple", "#ddb321", "blue", "grey",  "darkgreen", "red", "black"))
+overlap_out_field
+
+
+ggarrange(results_in_in_sample_uplift, results_in_out_sample_uplift, ncol =2, common.legend = TRUE, legend="bottom")
+ggarrange(overlap_in_field, overlap_out_field, ncol =2, common.legend = TRUE, legend="bottom")
 
 # privacy elasticity ------------------------------------------------------
 response = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/evaluation_export/response.csv")
@@ -3036,3 +3229,81 @@ results %>% mutate(tau = REVENUE_TREATED - REVENUE_NOT_TREATED)
 
 ## epsilon
 summary(lm("REVENUE ~ epsilon", data  = jo %>% filter(GROUP != "control")))
+
+
+# test --------------------------------------------------------------------
+# now with local dp
+pop = data$selection_tau
+epsilon_range = c(0.05,0.5,1,3,5)#,0.5,1,3,5
+
+for (epsilon in epsilon_range){
+  print(epsilon)
+  P = matrix(nrow = 2, ncol = 2)
+  diag(P) = (exp(epsilon))/(2-1+exp(epsilon))
+  P[is.na(P)==T] = (1)/(2-1+exp(epsilon))
+  
+  responses = c()
+  pop_0 = data %>% select(selection_tau, customer) %>% filter(selection_tau == 0)
+  pop_1 = data %>% select(selection_tau, customer) %>% filter(selection_tau == 1)
+  
+  pop_0$selection_tau = sample(x = c(1:2)-1,size = nrow(pop_0), prob= P[1,], replace = T)
+  pop_1$selection_tau = sample(x = c(1:2)-1,size = nrow(pop_1),prob=P[2,], replace = T)
+  responses = bind_rows(pop_0, pop_1) %>% arrange(customer)
+  
+  if(epsilon == 0.5){
+    data$selection_tau_05 = responses 
+    index05_0 = which(data$selection_tau_05 == 0)
+    index05 = which(data$selection_tau_05 == 1)
+    data$selection_tau_05 = 0
+    if(top > length(index05)){
+      data$selection_tau_05[sample(index05, length(index05))] = 1
+      data$selection_tau_05[sample(index05_0, top - length(index05))] = 1
+    }else{
+      data$selection_tau_05[sample(index05, top)] = 1
+    }
+  } else if(epsilon == 0.05){
+    data$selection_tau_005 = responses 
+    index005_0 = which(data$selection_tau_005 == 0)
+    index005 = which(data$selection_tau_005 == 1)
+    data$selection_tau_005 = 0
+    if(top > length(index005)){
+      data$selection_tau_005[sample(index005, length(index005))] = 1
+      data$selection_tau_005[sample(index005_0, top - length(index005))] = 1
+    }else{
+      data$selection_tau_005[sample(index005, top)] = 1
+    }
+  } else if(epsilon == 5){
+    data$selection_tau_5 = responses 
+    index5_0 = which(data$selection_tau_5 == 0)
+    index5 = which(data$selection_tau_5 == 1)
+    data$selection_tau_5 = 0
+    if(top > length(index5)){
+      data$selection_tau_5[sample(index5, length(index5))] = 1
+      data$selection_tau_5[sample(index5_0, top - length(index5))] = 1
+    }else{
+      data$selection_tau_5[sample(index5, top)] = 1
+    }
+  } else if(epsilon == 1){
+    data$selection_tau_1 = responses 
+    index1_0 = which(data$selection_tau_1 == 0)
+    index1 = which(data$selection_tau_1 == 1)
+    data$selection_tau_1 = 0
+    if(top > length(index1)){
+      data$selection_tau_1[sample(index1, length(index1))] = 1
+      data$selection_tau_1[sample(index1_0, top - length(index1))] = 1
+    }else{
+      data$selection_tau_1[sample(index1, top)] = 1
+    }
+  } else {
+    data$selection_tau_3 = responses 
+    index3_0 = which(data$selection_tau_3 == 0)
+    index3 = which(data$selection_tau_3 == 1)
+    data$selection_tau_3 = 0
+    if(top > length(index3)){
+      data$selection_tau_3[sample(index3, length(index3))] = 1
+      data$selection_tau_3[sample(index3_0, top - length(index3))] = 1
+    }else{
+      data$selection_tau_3[sample(index3, top)] = 1
+    }
+  }
+}
