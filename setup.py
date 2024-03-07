@@ -1,3 +1,5 @@
+import setuptools
+
 # Read the contents of README.md file for long description
 with open("README.md", "r") as fh:
     long_description = fh.read()
