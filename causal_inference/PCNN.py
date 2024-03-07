@@ -4,20 +4,20 @@ def PCNN(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 10
   from keras import backend as K
   from keras.utils import get_custom_objects
   import math
-  try:
-    import tensorflow_privacy
-    from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
-  except:
-    print("installing tensorflow privacy")
-    !pip install tensorflow_privacy -q
-    import tensorflow_privacy
-    from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
-  try:
-    import keras_tuner
-  except:
-    print("installing keras tuner")
-    !pip install keras_tuner -q
-    import keras_tuner
+  #try:
+  #  import tensorflow_privacy
+  #  from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
+  #except:
+  #  print("installing tensorflow privacy")
+  #  !pip install tensorflow_privacy -q
+  #  import tensorflow_privacy
+   # from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
+  #try:
+  #  import keras_tuner
+  #except:
+  #  print("installing keras tuner")
+  #  !pip install keras_tuner -q
+  #  import keras_tuner
 
   import random
   import tensorflow as tf
