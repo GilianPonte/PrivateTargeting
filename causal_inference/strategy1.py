@@ -215,28 +215,28 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     import pandas as pd
 
     # calculate epsilon
-  epsilon = np.round(tensorflow_privacy.compute_dp_sgd_privacy(n = len(X), batch_size = batch_size, noise_multiplier = noise_multiplier, epochs = epochs, delta = 1/len(X))[0],2)
-  print("epsilon  = " +  str(epsilon) + ", the privacy risk increases with " + str(np.round((math.exp(epsilon)-1)*100, 2)) + " percent" )
+    epsilon = np.round(tensorflow_privacy.compute_dp_sgd_privacy(n = len(X), batch_size = batch_size, noise_multiplier = noise_multiplier, epochs = epochs, delta = 1/len(X))[0],2)
+    print("epsilon  = " +  str(epsilon) + ", the privacy risk increases with " + str(np.round((math.exp(epsilon)-1)*100, 2)) + " percent" )
 
-  # callback settings for early stopping and saving
-  callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
+    # callback settings for early stopping and saving
+    callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
 
-  # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
-  def ATE(y_true, y_pred):
-    return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
+    # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
+    def ATE(y_true, y_pred):
+      return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
 
-  # storage of cate estimates
-  average_treatment_effect = []
+    # storage of cate estimates
+    average_treatment_effect = []
 
-  ## scale the data for well-behaved gradients
-  if scaling == True:
-    scaler0 = MinMaxScaler(feature_range = (-1, 1))
-    scaler0 = scaler0.fit(X)
-    X = scaler0.transform(X)
-    X = pd.DataFrame(X)
+    ## scale the data for well-behaved gradients
+    if scaling == True:
+      scaler0 = MinMaxScaler(feature_range = (-1, 1))
+      scaler0 = scaler0.fit(X)
+      X = scaler0.transform(X)
+      X = pd.DataFrame(X)
 
-  ## Add leaky-relu so we can use it as a string
-  get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
+    ## Add leaky-relu so we can use it as a string
+    get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
 
   def build_model(hp):
     model = keras.Sequential()
