@@ -15,14 +15,11 @@ requirements = [
 
 # Define package metadata
 setuptools.setup(
-    name="causal_inference_package",
+    name="private_targeting",
     version="0.1",
-    author="Your Name",
-    author_email="your_email@example.com",
-    description="A package for causal inference methods",
+    description="A package for targeting with privacy protection by differential privacy",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/causal_inference_package",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
