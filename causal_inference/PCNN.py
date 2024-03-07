@@ -1,4 +1,4 @@
-ef PCNN(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", noise_multiplier = 1):
+def PCNN(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", noise_multiplier = 1):
   from sklearn.linear_model import LogisticRegressionCV
   from keras.layers import Activation, LeakyReLU
   from keras import backend as K
