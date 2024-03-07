@@ -215,41 +215,50 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     import pandas as pd
 
     # calculate epsilon
-    epsilon = np.round(tensorflow_privacy.compute_dp_sgd_privacy(n=len(X), batch_size=batch_size, noise_multiplier=noise_multiplier, epochs=epochs, delta=1/len(X))[0], 2)
-    print("epsilon  = " +  str(epsilon) + ", the privacy risk increases with " + str(np.round((np.exp(epsilon)-1)*100, 2)) + " percent" )
+  epsilon = np.round(tensorflow_privacy.compute_dp_sgd_privacy(n = len(X), batch_size = batch_size, noise_multiplier = noise_multiplier, epochs = epochs, delta = 1/len(X))[0],2)
+  print("epsilon  = " +  str(epsilon) + ", the privacy risk increases with " + str(np.round((math.exp(epsilon)-1)*100, 2)) + " percent" )
 
-    # callback settings for early stopping and saving
-    callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode="min")
-  
-    ## Add leaky-relu so we can use it as a string
-    get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
+  # callback settings for early stopping and saving
+  callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
 
-    # storage of CATE estimates
-    average_treatment_effect = []
+  # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
+  def ATE(y_true, y_pred):
+    return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
 
-    # scale the data for well-behaved gradients
-    if scaling:
-        scaler = MinMaxScaler(feature_range=(-1, 1))
-        X = scaler.fit_transform(X)
+  # storage of cate estimates
+  average_treatment_effect = []
 
-    def build_model(hp):
-        model = keras.Sequential()
-        model.add(keras.Input(shape=(X.shape[1],)))
-        # Tune the number of layers.
-        for i in range(hp.Int("num_layers", 1, 5)):
-            model.add(
-                layers.Dense(
-                    units=hp.Choice(f"units_{i}", [8, 16, 32, 64, 256, 512, 1024, 2048, 4096]),
-                    activation=hp.Choice("activation", ["leaky-relu", "relu"]),
-                )
+  ## scale the data for well-behaved gradients
+  if scaling == True:
+    scaler0 = MinMaxScaler(feature_range = (-1, 1))
+    scaler0 = scaler0.fit(X)
+    X = scaler0.transform(X)
+    X = pd.DataFrame(X)
+
+  ## Add leaky-relu so we can use it as a string
+  get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
+
+  def build_model(hp):
+    model = keras.Sequential()
+    model.add(keras.Input(shape=(X.shape[1],)))
+    # Tune the number of layers.
+    for i in range(hp.Int("num_layers", 1, 5)):
+        model.add(
+            layers.Dense(
+                # Tune number of units separately.
+                units=hp.Choice(f"units_{i}", [8, 16, 32, 64,256,512,1024, 2048, 4096]),
+                activation=hp.Choice("activation", ["leaky-relu", "relu"]),
             )
-        model.add(layers.Dense(1, activation="linear"))
-        model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=0.001),
-            loss="mean_squared_error",
-            metrics=["MSE"],
         )
-        return model
+    model.add(layers.Dense(1, activation="linear"))
+    #learning_rate = hp.Choice("lr", [1e-2,1e-3,1e-4]),
+
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=0.001),
+        loss="mean_squared_error",
+        metrics=["MSE"],
+    )
+    return model
 
     for sim in range(simulations):
         print("iteration = " + str(sim + 1))
