@@ -228,8 +228,9 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     def ATE(y_true, y_pred):
         return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
 
-    # storage of cate estimates
-    average_treatment_effect = []
+   
+    average_treatment_effect = []  # storage of ate estimates
+    all_CATE_estimates = []  # Store CATE estimates for each simulation
 
     ## scale the data for well-behaved gradients
     if scaling == True:
@@ -372,7 +373,8 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
             print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2)}, sd(m_x) = {np.round(np.std(CATE), 3)}")
 
             CATE_estimates = np.concatenate((CATE_estimates, CATE))  # store CATE's
+            all_CATE_estimates.append(CATE_estimates)
         average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
         print(f"ATE = {np.round(np.mean(average_treatment_effect), 4)}, std(ATE) = {np.round(np.std(average_treatment_effect), 3)}")
 
-    return average_treatment_effect, CATE_estimates, tau_hat, epsilon
+    return average_treatment_effect, CATE_estimates,all_CATE_estimates, tau_hat, epsilon
