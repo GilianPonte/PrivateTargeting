@@ -201,10 +201,14 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     Returns:
     tuple: Tuple containing average treatment effect, CATE estimates, trained tau_hat model, and privacy risk epsilon.
     """
+    import random
     import numpy as np
     import tensorflow as tf
     from tensorflow import keras
+    from keras.layers import Activation, LeakyReLU
+    from keras import backend as K
     from keras import layers
+    from keras.utils import get_custom_objects
     from sklearn.model_selection import KFold
     from sklearn.preprocessing import MinMaxScaler
     from sklearn.linear_model import LogisticRegression
@@ -216,6 +220,9 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
 
     # callback settings for early stopping and saving
     callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode="min")
+  
+    ## Add leaky-relu so we can use it as a string
+    get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
 
     # storage of CATE estimates
     average_treatment_effect = []
