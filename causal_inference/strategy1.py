@@ -370,7 +370,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
             tau_hat.build(input_shape=(None, X.shape[1]))
             tau_hat.load_weights(checkpoint_filepath_taux)
             CATE = tau_hat.predict(x=X[test_idx], verbose=0).reshape(len(X[test_idx]))
-            print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2)}, sd(m_x) = {np.round(np.std(CATE), 3)}")
+            print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2)}, sd(tau_hat) = {np.round(np.std(CATE), 3)}")
 
             CATE_estimates = np.concatenate((CATE_estimates, CATE))  # store CATE's
         all_CATE_estimates.append(CATE_estimates)
