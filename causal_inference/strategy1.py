@@ -2,7 +2,7 @@ import tensorflow_privacy
 from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
 import keras_tuner
 
-def CNN(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner"):
+def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner"):
   from sklearn.linear_model import LogisticRegression
   from keras.layers import Activation, LeakyReLU
   from keras import backend as K
