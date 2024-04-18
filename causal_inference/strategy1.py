@@ -377,4 +377,4 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
         average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
         print(f"ATE = {np.round(np.mean(average_treatment_effect), 4)}, std(ATE) = {np.round(np.std(average_treatment_effect), 3)}")
 
-    return average_treatment_effect, CATE_estimates,all_CATE_estimates, tau_hat, epsilon
+    return average_treatment_effect,all_CATE_estimates, epsilon
