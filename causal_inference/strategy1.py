@@ -15,8 +15,8 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
   from sklearn.model_selection import KFold
 
   # callback settings for early stopping and saving
-  callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
-  callback1 = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping just like in rboost
+  callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping
+  callback1 = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping
 
   # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
   def ATE(y_true, y_pred):
@@ -39,11 +39,11 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
     model = keras.Sequential()
     model.add(keras.Input(shape=(X.shape[1],)))
     # Tune the number of layers.
-    for i in range(hp.Int("num_layers", 1, 5)):
+    for i in range(hp.Int("num_layers", 1, 4)):
         model.add(
             layers.Dense(
                 # Tune number of units separately.
-                units=hp.Choice(f"units_{i}", [8, 16, 32, 64,256,512,1024]),
+                units=hp.Choice(f"units_{i}", [8, 16, 32, 64,256,512]),
                 activation=hp.Choice("activation", ["leaky-relu", "relu"]),
             )
         )
@@ -246,11 +246,11 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
         model = keras.Sequential()
         model.add(keras.Input(shape=(X.shape[1],)))
         # Tune the number of layers.
-        for i in range(hp.Int("num_layers", 1, 5)):
+        for i in range(hp.Int("num_layers", 1, 4)):
             model.add(
                 layers.Dense(
                     # Tune number of units separately.
-                    units=hp.Choice(f"units_{i}", [8, 16, 32, 64, 256, 512, 1024]),
+                    units=hp.Choice(f"units_{i}", [8, 16, 32, 64, 256, 512]),
                     activation=hp.Choice("activation", ["leaky-relu", "relu"]),
                 )
             )
@@ -304,7 +304,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
                 directory=directory,
                 project_name="yhat",
             )
-            tuner.search(X, Y, epochs=epochs, validation_split=0.25, verbose=0)
+            tuner.search(X, Y, epochs=epochs, validation_split=0.25, verbose=0, callbacks=[mx_callbacks])
             # Get the optimal hyperparameters
             best_hps = tuner.get_best_hyperparameters()[0]
             print("the optimal architecture is: " + str(best_hps.values))
