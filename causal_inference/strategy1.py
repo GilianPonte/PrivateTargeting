@@ -270,7 +270,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
         np.random.seed(sim)
         tf.random.set_seed(sim)
         random.seed(sim)
-        tf.keras.utils.set_random_seed(seed)
+        tf.keras.utils.set_random_seed(sim)
 
         # for epsilon calculation
         idx = np.random.permutation(pd.DataFrame(X).index)
