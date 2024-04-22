@@ -217,8 +217,14 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     import keras_tuner
 
     # calculate epsilon
-    epsilon = np.round(tensorflow_privacy.compute_dp_sgd_privacy(n=len(X), batch_size=batch_size, noise_multiplier=noise_multiplier, epochs=epochs, delta=1/len(X))[0], 2)
-    print("epsilon  = " + str(epsilon) + ", the privacy risk increases with " + str(np.round((math.exp(epsilon)-1)*100, 2)) + " percent")
+    statement = tf_privacy.compute_dp_sgd_privacy_statement(number_of_examples = len(X),
+                                                            batch_size = batch_size,
+                                                            num_epochs = epochs,
+                                                            noise_multiplier= noise_multiplier,
+                                                            delta = 1/len(X),
+                                                            used_microbatching = True,
+                                                            max_examples_per_user = None)
+    print(statement)
 
     # callback settings for early stopping and saving
     callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode="min")  # early stopping just like in rboost
