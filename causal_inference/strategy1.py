@@ -215,6 +215,14 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     import pandas as pd
     import math
     import keras_tuner
+    
+    if number % batch_size != 0:
+      np.set_printoptions(suppress=True)
+      divisors = [i for i in range(1, int(math.sqrt(number)) + 1) if number % i == 0]
+      divisors += [number // i for i in divisors if number // i != i]
+      divisors.sort()
+      # Print the divisors
+      raise ValueError("The batch size you have specified does not divide the data into a whole number.\nPlease select one of the following possible batch sizes:", np.round(divisors,0))
 
     # calculate epsilon
     statement = tf_privacy.compute_dp_sgd_privacy_statement(number_of_examples = len(X),
