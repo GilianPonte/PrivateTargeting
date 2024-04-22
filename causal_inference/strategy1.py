@@ -184,7 +184,7 @@ import tensorflow_privacy
 from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
 import keras_tuner
 
-def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_epochs=1, directory="tuner", noise_multiplier=1, seed = 1):
+def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_epochs=1, directory="tuner", random_model = False, noise_multiplier=1, seed = 1):
     """
     Private Causal Neural Network (PCNN) algorithm for estimating average treatment effects.
 
@@ -250,6 +250,29 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
     def ATE(y_true, y_pred):
         return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
+
+    def generate_random_architecture(X):
+      model = keras.Sequential()
+      model.add(keras.Input(shape=(X.shape[1],)))
+      # Randomly choose the number of layers (within a certain range)
+      num_layers = np.random.randint(2, 5)  # Randomly choose between 2 and 5 layers
+      # Randomly select the activation function
+      activation = np.random.choice(['relu', 'tanh'])
+    
+      for _ in range(num_layers):
+        # Randomly choose the number of neurons for the dense layer
+        num_neurons = np.random.choice([8, 16, 32, 64, 256, 512])
+        model.add(Dense(num_neurons, activation=activation))
+        
+        # Add output layer
+        model.add(Dense(1, activation='linear'))
+        model.compile(
+          optimizer=keras.optimizers.Adam(learning_rate=0.001),
+          loss="mean_squared_error",
+          metrics=["MSE"],
+        )
+    
+    return model
 
     average_treatment_effect = []  # storage of ate estimates
     all_CATE_estimates = []  # Store CATE estimates for each simulation
@@ -353,8 +376,11 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
 
       cv = KFold(n_splits=2, shuffle=False)
       print("training for tau hat")
+     
       for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
         tau_hat = tuner.hypermodel.build(best_hps)
+        if random_model == True:
+          tau_hat = generate_random_architecture(X)
         tau_hat.compile(optimizer=tensorflow_privacy.DPKerasAdamOptimizer(l2_norm_clip=4, noise_multiplier=noise_multiplier, num_microbatches=batch_size, learning_rate=0.001), loss=tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE]) # the microbatches are equal to the batch size. No microbatching applied.
         history_tau = tau_hat.fit(
           X[train_idx],
