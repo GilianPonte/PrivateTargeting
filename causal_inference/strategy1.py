@@ -241,7 +241,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
                                                             noise_multiplier= noise_multiplier,
                                                             delta = 1/len(X),
                                                             used_microbatching = True,
-                                                            max_examples_per_user = None)
+                                                            max_examples_per_user = 1)
     print(statement)
 
     # callback settings for early stopping and saving
