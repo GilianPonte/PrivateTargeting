@@ -181,7 +181,7 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
   return average_treatment_effect, CATE_estimates, tau_hat
 
 
-def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_epochs=1, folds=2, directory="tuner", noise_multiplier=1):
+def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_epochs=1, directory="tuner", noise_multiplier=1):
     """
     Private Causal Neural Network (PCNN) algorithm for estimating average treatment effects.
 
@@ -194,7 +194,6 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     batch_size (int, optional): Batch size for training. Default is 100.
     epochs (int, optional): Number of epochs for training. Default is 100.
     max_epochs (int, optional): Maximum number of epochs for hyperparameter optimization. Default is 10.
-    folds (int, optional): Number of folds for cross-validation. Default is 5.
     directory (str, optional): Directory for saving hyperparameter optimization results. Default is "tuner".
     noise_multiplier (float, optional): Noise multiplier for differential privacy. Default is 1.
 
@@ -310,7 +309,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
             best_hps = tuner.get_best_hyperparameters()[0]
             print("the optimal architecture is: " + str(best_hps.values))
 
-        cv = KFold(n_splits=folds, shuffle=False)  # K-fold validation shuffle is off to prevent additional noise?
+        cv = KFold(n_splits=2, shuffle=False)  # K-fold validation shuffle is off to prevent additional noise?
 
         for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
             # training model for m(x)
@@ -354,7 +353,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
         pseudo_outcome = (y_tilde_hat / T_tilde_hat)  # pseudo_outcome = \tilde{Y} / \tilde{T}
         w_weights = np.square(T_tilde_hat)  # \tilde{T}**2
 
-        cv = KFold(n_splits=folds, shuffle=False)
+        cv = KFold(n_splits=2, shuffle=False)
         print("training for tau hat")
         for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
             tau_hat = tuner.hypermodel.build(best_hps)
