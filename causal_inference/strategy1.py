@@ -358,7 +358,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
         for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
             tau_hat = tuner.hypermodel.build(best_hps)
             tau_hat.compile(optimizer=tensorflow_privacy.DPKerasAdamOptimizer(l2_norm_clip=4, noise_multiplier=noise_multiplier, num_microbatches=batch_size, learning_rate=0.001),
-                            loss=tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE])
+                            loss=tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE]) # the microbatches are equal to the batch size. No microbatching applied.
             history_tau = tau_hat.fit(
                 X[train_idx],
                 pseudo_outcome[train_idx],
