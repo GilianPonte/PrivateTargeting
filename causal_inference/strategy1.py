@@ -271,8 +271,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
           loss="mean_squared_error",
           metrics=["MSE"],
         )
-    
-    return model
+        return model
 
     average_treatment_effect = []  # storage of ate estimates
     all_CATE_estimates = []  # Store CATE estimates for each simulation
