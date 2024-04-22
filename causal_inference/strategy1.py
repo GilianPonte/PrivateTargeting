@@ -314,8 +314,8 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     T = np.array(pd.DataFrame(T).reindex(idx))
 
     # save models
-    checkpoint_filepath_mx = f'm_x_{sim + 1}_{epsilon}.hdf5'
-    checkpoint_filepath_taux = f'tau_x{sim + 1}_{epsilon}.hdf5'
+    checkpoint_filepath_mx = f'{directory}/m_x_{epsilon}.hdf5'
+    checkpoint_filepath_taux = f'{directory}/tau_x_{epsilon}.hdf5'
     mx_callbacks = [callback,
       tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
     tau_hat_callbacks = [callback,
