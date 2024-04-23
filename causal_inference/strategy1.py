@@ -263,7 +263,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
       units = 64
     
       for _ in range(num_layers):
-          model.add(layers.Dense(units, activation='relu'))
+          model.add(layers.Dense(units, activation='tanh'))
           units = max(units // 2, 1)  # Reduce the number of units by half for each subsequent layer
         
       # Add output layer
@@ -382,7 +382,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
       if random_model == False:
         tau_hat = tuner.hypermodel.build(best_hps)     
-      tau_hat = generate_fixed_architecture(X)
+      tau_hat = generate_fixed_architecture(X) # an alternative is to fix the values of hyperparameters to some reasonable defaults and forgo hyperparameter tuning altogether (Ponomareva et al. 2023)
       print(tau_hat.summary())
       tau_hat.compile(optimizer=tensorflow_privacy.DPKerasAdamOptimizer(l2_norm_clip=4, noise_multiplier=noise_multiplier, num_microbatches=batch_size, learning_rate=0.001), loss=tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE]) # the microbatches are equal to the batch size. No microbatching applied.
       history_tau = tau_hat.fit(
