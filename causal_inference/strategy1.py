@@ -401,6 +401,6 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
       print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2)}, sd(tau_hat) = {np.round(np.std(CATE), 3)}")
 
       CATE_estimates = np.concatenate((CATE_estimates, CATE))  # store CATE's
-      average_treatment_effect = np.mean(CATE_estimates)
-      print(f"ATE = {np.round(np.mean(average_treatment_effect), 4)}, std(ATE) = {np.round(np.std(average_treatment_effect), 3)}")    
+    average_treatment_effect = np.mean(CATE_estimates)
+    print(f"ATE = {average_treatment_effect}")    
     return average_treatment_effect,all_CATE_estimates, tau_hat, epsilon
