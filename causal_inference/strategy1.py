@@ -201,7 +201,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     noise_multiplier (float, optional): Noise multiplier for differential privacy. Default is 1.
 
     Returns:
-    tuple: Tuple containing average treatment effect, CATE estimates, trained tau_hat model, and privacy risk epsilon.
+    tuple: Tuple containing average treatment effect, CATE estimates, trained tau_hat model, and privacy risk .
     """
   
     import random
@@ -400,4 +400,4 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
         average_treatment_effect = np.mean(CATE_estimates)
         print(f"ATE = {np.round(np.mean(average_treatment_effect), 4)}, std(ATE) = {np.round(np.std(average_treatment_effect), 3)}")
         
-    return average_treatment_effect,all_CATE_estimates
+    return average_treatment_effect,all_CATE_estimates, tau_hat
