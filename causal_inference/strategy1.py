@@ -240,7 +240,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
                                                             num_epochs = epochs,
                                                             noise_multiplier= noise_multiplier,
                                                             delta = 1/len(X),
-                                                            used_microbatching = True,
+                                                            used_microbatching = False,
                                                             max_examples_per_user = 1)
     print(statement)
 
