@@ -255,13 +255,13 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
       model = keras.Sequential()
       model.add(keras.Input(shape=(X.shape[1],)))
       # Randomly choose the number of layers (within a certain range)
-      num_layers = np.random.randint(2, 5)  # Randomly choose between 2 and 5 layers
+      num_layers = np.random.randint(4, 5)  # Randomly choose between 2 and 5 layers
       # Randomly select the activation function
       activation = np.random.choice(['relu', 'tanh'])
     
       for _ in range(num_layers):
         # Randomly choose the number of neurons for the dense layer
-        num_neurons = np.random.choice([8, 16, 32, 64, 256, 512])
+        num_neurons = np.random.choice([32, 64, 256, 512])
         model.add(Dense(num_neurons, activation=activation))
         
         # Add output layer
