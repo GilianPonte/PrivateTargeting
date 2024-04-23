@@ -317,8 +317,8 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     T = np.array(pd.DataFrame(T).reindex(idx))
 
     # save models
-    checkpoint_filepath_mx = 'm_x.hdf5'
-    checkpoint_filepath_taux = 'tau_x.hdf5'
+    checkpoint_filepath_mx = f'_{epsilon}_m_x.hdf5'
+    checkpoint_filepath_taux = f'_{epsilon}_tau_x.hdf5'
     mx_callbacks = [callback,
       tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
     tau_hat_callbacks = [callback,
@@ -403,4 +403,4 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
         average_treatment_effect = np.mean(CATE_estimates)
         print(f"ATE = {np.round(np.mean(average_treatment_effect), 4)}, std(ATE) = {np.round(np.std(average_treatment_effect), 3)}")
         
-    return average_treatment_effect,all_CATE_estimates, tau_hat
+    return average_treatment_effect,all_CATE_estimates, tau_hat, epsilon
