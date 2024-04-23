@@ -359,49 +359,48 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
       y_tilde_hat = np.concatenate((y_tilde_hat, y_tilde))  # cbind in r
       m_x_hat = np.concatenate((m_x_hat, m_x))  # cbind in r
       
-      # fit \hat{e}(x)
-      clf = LogisticRegression(verbose=0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
-      e_x = clf.predict_proba(X[test_idx])  # obtain \hat{e}(x)
-      print(f"Fold {fold}: mean(m_x) = {np.round(np.mean(m_x), 2)}, sd(m_x) = {np.round(np.std(m_x), 3)} and mean(e_x) = {np.round(np.mean(e_x[:, 1]), 2)}, sd(e_x) = {np.round(np.std(e_x[:, 1]), 3)}")
+    # fit \hat{e}(x)
+    clf = LogisticRegression(verbose=0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
+    e_x = clf.predict_proba(X[test_idx])  # obtain \hat{e}(x)
+    print(f"Fold {fold}: mean(m_x) = {np.round(np.mean(m_x), 2)}, sd(m_x) = {np.round(np.std(m_x), 3)} and mean(e_x) = {np.round(np.mean(e_x[:, 1]), 2)}, sd(e_x) = {np.round(np.std(e_x[:, 1]), 3)}")
       
-      # obtain \tilde{T} = T_{i} - \hat{e}(x)
-      truth = T[test_idx].T.reshape(len(T[test_idx]))
-      T_tilde = truth - e_x[:, 1]
-      T_tilde_hat = np.concatenate((T_tilde_hat, T_tilde))
-      e_x_hat = np.concatenate((e_x_hat, e_x[:, 1]))
+    # obtain \tilde{T} = T_{i} - \hat{e}(x)
+    truth = T[test_idx].T.reshape(len(T[test_idx]))
+    T_tilde = truth - e_x[:, 1]
+    T_tilde_hat = np.concatenate((T_tilde_hat, T_tilde))
+    e_x_hat = np.concatenate((e_x_hat, e_x[:, 1]))
       
-      # storage
-      CATE_estimates = []
+    # storage
+    CATE_estimates = []
       
-      # pseudo_outcome and weights
-      pseudo_outcome = (y_tilde_hat / T_tilde_hat)  # pseudo_outcome = \tilde{Y} / \tilde{T}
-      w_weights = np.square(T_tilde_hat)  # \tilde{T}**2
+    # pseudo_outcome and weights
+    pseudo_outcome = (y_tilde_hat / T_tilde_hat)  # pseudo_outcome = \tilde{Y} / \tilde{T}
+    w_weights = np.square(T_tilde_hat)  # \tilde{T}**2
 
-      cv = KFold(n_splits=2, shuffle=False)
-      print("training for tau hat")
+    cv = KFold(n_splits=2, shuffle=False)
+    print("training for tau hat")
      
-      for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
-        tau_hat = tuner.hypermodel.build(best_hps)
-        if random_model == True:
-          tau_hat = generate_random_architecture(X)
-        tau_hat.compile(optimizer=tensorflow_privacy.DPKerasAdamOptimizer(l2_norm_clip=4, noise_multiplier=noise_multiplier, num_microbatches=batch_size, learning_rate=0.001), loss=tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE]) # the microbatches are equal to the batch size. No microbatching applied.
-        history_tau = tau_hat.fit(
-          X[train_idx],
-          pseudo_outcome[train_idx],
-          sample_weight=w_weights[train_idx],
-          epochs=epochs,
-          batch_size=batch_size,
-          callbacks=tau_hat_callbacks,
-          validation_data=(X[test_idx], pseudo_outcome[test_idx]),
-          verbose=0)
-        tau_hat = tuner.hypermodel.build(best_hps)
-        tau_hat.build(input_shape=(None, X.shape[1]))
-        tau_hat.load_weights(checkpoint_filepath_taux)
-        CATE = tau_hat.predict(x=X[test_idx], verbose=0).reshape(len(X[test_idx]))
-        print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2)}, sd(tau_hat) = {np.round(np.std(CATE), 3)}")
+    for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
+      tau_hat = tuner.hypermodel.build(best_hps)
+      if random_model == True:
+        tau_hat = generate_random_architecture(X)
+      tau_hat.compile(optimizer=tensorflow_privacy.DPKerasAdamOptimizer(l2_norm_clip=4, noise_multiplier=noise_multiplier, num_microbatches=batch_size, learning_rate=0.001), loss=tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE]) # the microbatches are equal to the batch size. No microbatching applied.
+      history_tau = tau_hat.fit(
+        X[train_idx],
+        pseudo_outcome[train_idx],
+        sample_weight=w_weights[train_idx],
+        epochs=epochs,
+        batch_size=batch_size,
+        callbacks=tau_hat_callbacks,
+        validation_data=(X[test_idx], pseudo_outcome[test_idx]),
+        verbose=0)
+      tau_hat = tuner.hypermodel.build(best_hps)
+      tau_hat.build(input_shape=(None, X.shape[1]))
+      tau_hat.load_weights(checkpoint_filepath_taux)
+      CATE = tau_hat.predict(x=X[test_idx], verbose=0).reshape(len(X[test_idx]))
+      print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2)}, sd(tau_hat) = {np.round(np.std(CATE), 3)}")
 
-        CATE_estimates = np.concatenate((CATE_estimates, CATE))  # store CATE's
-        average_treatment_effect = np.mean(CATE_estimates)
-        print(f"ATE = {np.round(np.mean(average_treatment_effect), 4)}, std(ATE) = {np.round(np.std(average_treatment_effect), 3)}")
-        
+      CATE_estimates = np.concatenate((CATE_estimates, CATE))  # store CATE's
+      average_treatment_effect = np.mean(CATE_estimates)
+      print(f"ATE = {np.round(np.mean(average_treatment_effect), 4)}, std(ATE) = {np.round(np.std(average_treatment_effect), 3)}")    
     return average_treatment_effect,all_CATE_estimates, tau_hat, epsilon
