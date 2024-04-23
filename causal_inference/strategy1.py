@@ -205,6 +205,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     """
   
     import random
+    import re
     import numpy as np
     import tensorflow as tf
     import tensorflow_privacy
