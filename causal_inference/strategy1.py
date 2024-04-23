@@ -263,7 +263,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
       units = 64
     
       for _ in range(num_layers):
-          model.add(layers.Dense(units, activation='tanh'))
+          model.add(layers.Dense(units, activation='tanh')) # https://arxiv.org/pdf/2007.14191.pdf
           units = max(units // 2, 1)  # Reduce the number of units by half for each subsequent layer
         
       # Add output layer
