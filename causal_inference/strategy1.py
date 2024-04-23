@@ -132,7 +132,6 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
       T_tilde_hat = np.concatenate((T_tilde_hat,T_tilde))
       e_x_hat = np.concatenate((e_x_hat,e_x[:,1]))
 
-    print("mean(m_x) = " + str(np.round(np.mean(m_x_hat),2)) + ", sd(m_x) = " + str(np.round(np.std(m_x_hat),3)) + " and mean(e_x) = " + str(np.round(np.mean(e_x_hat),2)) + ", sd(e_x) = " + str(np.round(np.std(e_x_hat),3)))
     # storage
     CATE_estimates = []
     CATE = []
@@ -359,16 +358,16 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
       y_tilde_hat = np.concatenate((y_tilde_hat, y_tilde))  # cbind in r
       m_x_hat = np.concatenate((m_x_hat, m_x))  # cbind in r
       
-    # fit \hat{e}(x)
-    clf = LogisticRegression(verbose=0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
-    e_x = clf.predict_proba(X[test_idx])  # obtain \hat{e}(x)
-    print(f"Fold {fold}: mean(m_x) = {np.round(np.mean(m_x), 2)}, sd(m_x) = {np.round(np.std(m_x), 3)} and mean(e_x) = {np.round(np.mean(e_x[:, 1]), 2)}, sd(e_x) = {np.round(np.std(e_x[:, 1]), 3)}")
+      # fit \hat{e}(x)
+      clf = LogisticRegression(verbose=0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
+      e_x = clf.predict_proba(X[test_idx])  # obtain \hat{e}(x)
+      print(f"Fold {fold}: mean(m_x) = {np.round(np.mean(m_x), 2)}, sd(m_x) = {np.round(np.std(m_x), 3)} and mean(e_x) = {np.round(np.mean(e_x[:, 1]), 2)}, sd(e_x) = {np.round(np.std(e_x[:, 1]), 3)}")
       
-    # obtain \tilde{T} = T_{i} - \hat{e}(x)
-    truth = T[test_idx].T.reshape(len(T[test_idx]))
-    T_tilde = truth - e_x[:, 1]
-    T_tilde_hat = np.concatenate((T_tilde_hat, T_tilde))
-    e_x_hat = np.concatenate((e_x_hat, e_x[:, 1]))
+      # obtain \tilde{T} = T_{i} - \hat{e}(x)
+      truth = T[test_idx].T.reshape(len(T[test_idx]))
+      T_tilde = truth - e_x[:, 1]
+      T_tilde_hat = np.concatenate((T_tilde_hat, T_tilde))
+      e_x_hat = np.concatenate((e_x_hat, e_x[:, 1]))
       
     # storage
     CATE_estimates = []
