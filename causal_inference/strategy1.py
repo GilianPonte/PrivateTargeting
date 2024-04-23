@@ -260,7 +260,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     
       # Define the architecture with 4 layers
       num_layers = 4
-      units = 128
+      units = 64
     
       for _ in range(num_layers):
           model.add(layers.Dense(units, activation='relu'))
