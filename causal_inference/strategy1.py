@@ -377,12 +377,12 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     w_weights = np.square(T_tilde_hat)  # \tilde{T}**2
 
     cv = KFold(n_splits=2, shuffle=False)
+    
     print("training for tau hat")
-     
     for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
-      tau_hat = tuner.hypermodel.build(best_hps)
-      if random_model == True:
-        tau_hat = generate_random_architecture(X)
+      if random_model == False:
+        tau_hat = tuner.hypermodel.build(best_hps)     
+      tau_hat = generate_random_architecture(X)
       tau_hat.compile(optimizer=tensorflow_privacy.DPKerasAdamOptimizer(l2_norm_clip=4, noise_multiplier=noise_multiplier, num_microbatches=batch_size, learning_rate=0.001), loss=tf.keras.losses.MeanSquaredError(reduction=tf.losses.Reduction.NONE), metrics=[ATE]) # the microbatches are equal to the batch size. No microbatching applied.
       history_tau = tau_hat.fit(
         X[train_idx],
@@ -393,8 +393,9 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
         callbacks=tau_hat_callbacks,
         validation_data=(X[test_idx], pseudo_outcome[test_idx]),
         verbose=0)
-      tau_hat = tuner.hypermodel.build(best_hps)
-      tau_hat.build(input_shape=(None, X.shape[1]))
+      if random_model == False:
+        tau_hat = tuner.hypermodel.build(best_hps)
+        tau_hat.build(input_shape=(None, X.shape[1]))
       tau_hat.load_weights(checkpoint_filepath_taux)
       CATE = tau_hat.predict(x=X[test_idx], verbose=0).reshape(len(X[test_idx]))
       print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2)}, sd(tau_hat) = {np.round(np.std(CATE), 3)}")
