@@ -254,26 +254,26 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     def ATE(y_true, y_pred):
         return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
 
-    def generate_random_architecture(X):
+    def generate_fixed_architecture(X):
       model = keras.Sequential()
       model.add(keras.Input(shape=(X.shape[1],)))
-      # Randomly choose the number of layers (within a certain range)
-      num_layers = np.random.randint(4, 5)  # Randomly choose between 2 and 5 layers
-      # Randomly select the activation function
-      activation = np.random.choice(['relu', 'tanh'])
+    
+      # Define the architecture with 5 layers
+      num_layers = 5
+      units = 512
     
       for _ in range(num_layers):
-        # Randomly choose the number of neurons for the dense layer
-        num_neurons = np.random.choice([32, 64, 256, 512])
-        model.add(layers.Dense(num_neurons, activation=activation))
+          model.add(layers.Dense(units, activation='relu'))
+          units = max(units // 2, 1)  # Reduce the number of units by half for each subsequent layer
         
-        # Add output layer
-        model.add(layers.Dense(1, activation='linear'))
-        model.compile(
-          optimizer=keras.optimizers.Adam(learning_rate=0.001),
-          loss="mean_squared_error",
-          metrics=["MSE"],
-        )
+      # Add output layer
+      model.add(layers.Dense(1, activation='linear'))
+    
+      model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=0.001),
+        loss="mean_squared_error",
+        metrics=["MSE"],
+      )
         return model
 
     average_treatment_effect = []  # storage of ate estimates
