@@ -404,4 +404,4 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
       CATE_estimates = np.concatenate((CATE_estimates, CATE))  # store CATE's
     average_treatment_effect = np.mean(CATE_estimates)
     print(f"ATE = {average_treatment_effect}")    
-    return average_treatment_effect,all_CATE_estimates, tau_hat, epsilon
+    return average_treatment_effect, CATE_estimates, tau_hat, epsilon
