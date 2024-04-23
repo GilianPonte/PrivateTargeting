@@ -43,7 +43,7 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
         model.add(
             layers.Dense(
                 # Tune number of units separately.
-                units=hp.Choice(f"units_{i}", [8, 16, 32, 64,256,512]),
+                units=hp.Choice(f"units_{i}", [32, 64,256,512]),
                 activation=hp.Choice("activation", ["leaky-relu", "relu"]),
             )
         )
