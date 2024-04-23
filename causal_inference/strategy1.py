@@ -243,6 +243,9 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
                                                             used_microbatching = False,
                                                             max_examples_per_user = 1)
     print(statement)
+    numbers = re.findall(r'\d+\.\d+|\d+', statement)
+    numbers = [float(num) if '.' in num else int(num) for num in numbers]
+    epsilon = numbers[8]
 
     # callback settings for early stopping and saving
     callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode="min")  # early stopping just like in rboost
