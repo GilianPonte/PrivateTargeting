@@ -310,7 +310,7 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
         )
         return model
       
-    # for epsilon calculation
+    # for epsilon calculation. Shuffeling serves as a Poisson sampling substitute (Ponomareva et al. 2023)
     idx = np.random.permutation(pd.DataFrame(X).index)
     X = np.array(pd.DataFrame(X).reindex(idx))
     Y = np.array(pd.DataFrame(Y).reindex(idx))
