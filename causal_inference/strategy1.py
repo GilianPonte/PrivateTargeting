@@ -266,10 +266,10 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
       for _ in range(num_layers):
         # Randomly choose the number of neurons for the dense layer
         num_neurons = np.random.choice([32, 64, 256, 512])
-        model.add(Dense(num_neurons, activation=activation))
+        model.add(layers.Dense(num_neurons, activation=activation))
         
         # Add output layer
-        model.add(Dense(1, activation='linear'))
+        model.add(layers.Dense(1, activation='linear'))
         model.compile(
           optimizer=keras.optimizers.Adam(learning_rate=0.001),
           loss="mean_squared_error",
