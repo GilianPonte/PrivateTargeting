@@ -183,7 +183,7 @@ import tensorflow_privacy
 from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
 import keras_tuner
 
-def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_epochs=1, directory="tuner", random_model = False, noise_multiplier=1, seed = 1):
+def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_epochs=1, directory="tuner", tuner = "randomsearch", random_model = False, noise_multiplier=1, seed = 1):
     """
     Private Causal Neural Network (PCNN) algorithm for estimating average treatment effects.
 
@@ -329,7 +329,11 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
     e_x_hat = []  # collect all e_x_hat for print
     
     print("hyperparameter optimization for yhat")
-    tuner = keras_tuner.Hyperband(hypermodel=build_model, objective="val_loss", max_epochs=max_epochs, overwrite=True, directory=directory, project_name="yhat",)
+    if tuner == 'hyperband':
+      tuner = keras_tuner.Hyperband(hypermodel=build_model, objective="val_loss", max_epochs=max_epochs, overwrite=True, directory=directory, project_name="yhat",seed=seed,)
+    if tuner == 'randomsearch':
+      tuner = keras_tuner.RandomSearch(hypermodel=build_model, objective="val_loss", directory=directory, project_name="yhat",seed=seed,)
+  
     tuner.search(X, Y, epochs=epochs, validation_split=0.25, verbose=1, callbacks=[mx_callbacks])
     # Get the optimal hyperparameters
     best_hps = tuner.get_best_hyperparameters()[0]
