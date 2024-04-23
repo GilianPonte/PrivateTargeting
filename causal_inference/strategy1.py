@@ -258,9 +258,9 @@ def pcnn(X, Y, T, scaling=True, simulations=1, batch_size=100, epochs=100, max_e
       model = keras.Sequential()
       model.add(keras.Input(shape=(X.shape[1],)))
     
-      # Define the architecture with 5 layers
-      num_layers = 5
-      units = 512
+      # Define the architecture with 4 layers
+      num_layers = 4
+      units = 256
     
       for _ in range(num_layers):
           model.add(layers.Dense(units, activation='relu'))
