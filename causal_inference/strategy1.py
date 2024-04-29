@@ -320,12 +320,12 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     T = np.array(pd.DataFrame(T).reindex(idx))
 
     # save models
-    checkpoint_filepath_mx = f'_{epsilon}_m_x.hdf5'
-    checkpoint_filepath_taux = f'_{epsilon}_tau_x.hdf5'
+    checkpoint_filepath_mx = f'_{epsilon}_m_x'
+    checkpoint_filepath_taux = f'_{epsilon}_tau_x'
     mx_callbacks = [callback,
-      tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
+      tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True, save_format='tf'),]
     tau_hat_callbacks = [callback,
-                         tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_taux, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
+      tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_taux, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True, save_format='tf'),]
     y_tilde_hat = []  # collect all the \tilde{Y}
     T_tilde_hat = []  # collect all the \tilde{T}
     m_x_hat = []  # collect all m_x_hat for print
