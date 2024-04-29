@@ -226,26 +226,29 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     random.seed(seed)
     tf.keras.utils.set_random_seed(seed)
 
+    # Check if batch size divides the data evenly
     if len(X) % batch_size != 0:
-      np.set_printoptions(suppress=True)
-      divisors = [i for i in range(1, int(math.sqrt(len(X))) + 1) if len(X) % i == 0]
-      divisors += [len(X) // i for i in divisors if len(X) // i != i]
-      divisors.sort()
-      # Print the divisors
-      raise ValueError("The batch size you have specified does not divide the data into a whole number.\nPlease select one of the following possible batch sizes:", np.round(divisors,0))
+        divisors = [i for i in range(1, int(math.sqrt(len(X))) + 1) if len(X) % i == 0]
+        divisors += [len(X) // i for i in divisors if len(X) // i != i]
+        divisors.sort()
+        raise ValueError("The batch size you have specified does not divide the data into a whole number.\nPlease select one of the following possible batch sizes: {}".format(np.round(divisors)))
 
-    # calculate epsilon
-    statement = tensorflow_privacy.compute_dp_sgd_privacy_statement(number_of_examples = len(X),
-                                                            batch_size = batch_size,
-                                                            num_epochs = epochs,
-                                                            noise_multiplier= noise_multiplier,
-                                                            delta = 1/len(X),
-                                                            used_microbatching = False,
-                                                            max_examples_per_user = 1)
+    # Calculate epsilon
+    statement = tensorflow_privacy.compute_dp_sgd_privacy_statement(
+        number_of_examples=len(X),
+        batch_size=batch_size,
+        num_epochs=epochs,
+        noise_multiplier=noise_multiplier,
+        delta=1/len(X),
+        used_microbatching=False,
+        max_examples_per_user=1
+    )
     print(statement)
-    numbers = re.findall(r'\d+\.\d+|\d+', statement)
-    numbers = [float(num) if '.' in num else int(num) for num in numbers]
-    epsilon = numbers[8]
+
+    # Extract epsilon and noise_multiplier from the statement
+    numbers = [float(num) if '.' in num else int(num) for num in re.findall(r'\d+\.\d+|\d+', statement)]
+    n, epsilon, noise_multiplier, epsilon_conservative = numbers[0], numbers[8], numbers[2], numbers[7]
+
 
     # callback settings for early stopping and saving
     callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode="min")  # early stopping just like in rboost
