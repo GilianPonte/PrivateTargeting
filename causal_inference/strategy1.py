@@ -320,8 +320,8 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     T = np.array(pd.DataFrame(T).reindex(idx))
 
     # save models
-    checkpoint_filepath_mx = f"{directory}/_{epsilon}_m_x.keras"
-    checkpoint_filepath_taux = f"{directory}/_{epsilon}_tau_x.keras"
+    checkpoint_filepath_mx = f"{directory}/_{epsilon}_m_x.hdf5"
+    checkpoint_filepath_taux = f"{directory}/_{epsilon}_tau_x.hdf5"
 
     mx_callbacks = [callback,
       tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True,)]
@@ -343,6 +343,12 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     cv = KFold(n_splits=2, shuffle=False)  # K-fold validation shuffle is off to prevent additional noise?
 
     for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
+      # set random seeds
+      np.random.seed(seed)
+      tf.random.set_seed(seed)
+      random.seed(seed)
+      tf.keras.utils.set_random_seed(seed)
+      
       # training model for m(x)
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.fit(X[train_idx],
@@ -385,6 +391,11 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     
     print("training for tau hat")
     for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
+      # set random seeds
+      np.random.seed(seed)
+      tf.random.set_seed(seed)
+      random.seed(seed)
+      tf.keras.utils.set_random_seed(seed)
       if fixed_model == False:
         tau_hat = tuner.hypermodel.build(best_hps)     
       tau_hat = generate_fixed_architecture(X) # an alternative is to fix the values of hyperparameters to some reasonable defaults and forgo hyperparameter tuning altogether (Ponomareva et al. 2023)
@@ -401,7 +412,7 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
       if fixed_model == False:
         tau_hat = tuner.hypermodel.build(best_hps)
         tau_hat.build(input_shape=(None, X.shape[1]))
-      tau_hat.load_weights(checkpoint_filepath_taux)
+        tau_hat.load_weights(checkpoint_filepath_taux)
       CATE = tau_hat.predict(x=X[test_idx], verbose=0).reshape(len(X[test_idx]))
       print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2):.2f}, sd(tau_hat) = {np.round(np.std(CATE), 3):.3f}")
 
