@@ -334,7 +334,7 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     print("hyperparameter optimization for yhat")
     tuner = keras_tuner.Hyperband(hypermodel=build_model, objective="val_loss", max_epochs=max_epochs, overwrite=True, directory=directory, project_name="yhat",seed=seed,) # random search is at least as slow..
    
-    tuner.search(X, Y, epochs=epochs, validation_split=0.25, verbose=1, callbacks=[mx_callbacks])
+    tuner.search(X, Y, epochs=epochs, validation_split=0.25, verbose=0, callbacks=[mx_callbacks])
     # Get the optimal hyperparameters
     best_hps = tuner.get_best_hyperparameters()[0]
     print("the optimal architecture is: " + str(best_hps.values))
