@@ -365,8 +365,8 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
       # fit \hat{e}(x)
       clf = LogisticRegression(verbose=0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
       e_x = clf.predict_proba(X[test_idx])  # obtain \hat{e}(x)
-      print(f"Fold {fold}: mean(m_x) = {np.round(np.mean(m_x), 2)}, sd(m_x) = {np.round(np.std(m_x), 3)} and mean(e_x) = {np.round(np.mean(e_x[:, 1]), 2)}, sd(e_x) = {np.round(np.std(e_x[:, 1]), 3)}")
-      
+      print(f"Fold {fold}: mean(m_x) = {np.round(np.mean(m_x), 2):.2f}, sd(m_x) = {np.round(np.std(m_x), 3):.3f} and mean(e_x) = {np.round(np.mean(e_x[:, 1]), 2):.2f}, sd(e_x) = {np.round(np.std(e_x[:, 1]), 3):.3f}")
+    
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
       truth = T[test_idx].T.reshape(len(T[test_idx]))
       T_tilde = truth - e_x[:, 1]
@@ -402,7 +402,7 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
         tau_hat.build(input_shape=(None, X.shape[1]))
       tau_hat.load_weights(checkpoint_filepath_taux)
       CATE = tau_hat.predict(x=X[test_idx], verbose=0).reshape(len(X[test_idx]))
-      print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2)}, sd(tau_hat) = {np.round(np.std(CATE), 3)}")
+      print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2):.2f}, sd(tau_hat) = {np.round(np.std(CATE), 3):.3f}")
 
       CATE_estimates = np.concatenate((CATE_estimates, CATE))  # store CATE's
     average_treatment_effect = np.mean(CATE_estimates)
