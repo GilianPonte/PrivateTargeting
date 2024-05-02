@@ -1,4 +1,4 @@
-protection = function(epsilon, selection = pop, top){
+protection = function(epsilon, selection, top){
   # privacy settings
   P = matrix(nrow = 2, ncol = 2)
   diag(P) = (exp(epsilon))/(2-1+exp(epsilon))
