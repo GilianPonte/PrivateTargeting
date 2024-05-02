@@ -1,7 +1,7 @@
 protect = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5,1,3,5)){
   top = floor(n * percent)
-  selection_true = rep(NA, n)
-  selection_tau = rep(NA, n)
+  selection_true = rep(0, n)
+  selection_tau = rep(0, n)
   selection_true[as.data.frame(sort(CATE, decreasing = TRUE, index.return = T))$ix[1:top]] = 1
   selection_tau[as.data.frame(sort(CATE_estimates,decreasing = TRUE, index.return = T))$ix[1:top]] = 1
   
@@ -16,6 +16,8 @@ protect = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5,1,3,5
   colnames(collection) = c("customer", paste0("", gsub("\\.", "", as.character(paste0("epsilon_", epsilons)))))
   collection$random = sample(x = c(0,1), size = n, replace = TRUE, prob= c(1-percent,percent))
   collection$percentage = percent
+  collection$selection_true = selection_true
+  collection$selection_tau = selection_tau
   return(collection)
 }
 
