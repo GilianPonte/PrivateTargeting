@@ -32,6 +32,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
   from keras import backend as K
   from keras.utils import get_custom_objects
   from sklearn.preprocessing import MinMaxScaler
+  import numpy as np
 
   # set seeds
   random.seed(seed)
