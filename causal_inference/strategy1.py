@@ -196,8 +196,7 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
     CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
   average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
   print("ATE = " + str(np.round(np.mean(average_treatment_effect), 4)) + ", std(ATE) = " + str(np.round(np.std(average_treatment_effect), 3)))
-
-return average_treatment_effect, CATE_estimates, tau_hat
+  return average_treatment_effect, CATE_estimates, tau_hat
 
 import tensorflow_privacy
 from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
