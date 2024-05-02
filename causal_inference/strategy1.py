@@ -113,7 +113,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
   
   cv = KFold(n_splits=folds, shuffle = False) # K-fold validation shuffle is off to prevent additional noise?
 
-  for k, (train_idx, test_idx) in enumerate(cv.split(X)):
+  for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
     # set random seeds
     np.random.seed(seed)
     tf.random.set_seed(seed)
@@ -172,7 +172,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
 
   cv = KFold(n_splits=folds, shuffle = False)
   print("training for tau hat")
-  for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
+  for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
     # set random seeds
     np.random.seed(seed)
     tf.random.set_seed(seed)
