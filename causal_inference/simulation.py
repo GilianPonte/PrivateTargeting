@@ -7,7 +7,7 @@ import numpy as np
 import random
 import tensorflow
 import causal_inference
-from causal_inference import simulation1
+from causal_inference import simulation_data
 from causal_inference import strategy1
 import time
 import secrets
