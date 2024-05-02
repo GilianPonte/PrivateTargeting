@@ -78,128 +78,126 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
         )
         return model
     
-    # shuffle data
-    idx = np.random.permutation(pd.DataFrame(X).index)
-    X = np.array(pd.DataFrame(X).reindex(idx))
-    Y = np.array(pd.DataFrame(Y).reindex(idx))
-    T = np.array(pd.DataFrame(T).reindex(idx))
+  # shuffle data
+  idx = np.random.permutation(pd.DataFrame(X).index)
+  X = np.array(pd.DataFrame(X).reindex(idx))
+  Y = np.array(pd.DataFrame(Y).reindex(idx))
+  T = np.array(pd.DataFrame(T).reindex(idx))
 
-    # save models
-    checkpoint_filepath_mx = f"{directory}/m_x.hdf5"
-    checkpoint_filepath_taux = f"{directory}/tau_x.hdf5"
-    mx_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
-    tau_hat_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_taux, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
+  # save models
+  checkpoint_filepath_mx = f"{directory}/m_x.hdf5"
+  checkpoint_filepath_taux = f"{directory}/tau_x.hdf5"
+  mx_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
+  tau_hat_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_taux, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
 
-    y_tilde_hat = [] # collect all the \tilde{Y}
-    T_tilde_hat = [] # collect all the \tilde{T}
-    m_x_hat = [] # collect all m_x_hat for print
-    e_x_hat = [] # collect all e_x_hat for print
+  y_tilde_hat = [] # collect all the \tilde{Y}
+  T_tilde_hat = [] # collect all the \tilde{T}
+  m_x_hat = [] # collect all m_x_hat for print
+  e_x_hat = [] # collect all e_x_hat for print
     
-    print("hyperparameter optimization for yhat")
-    tuner = keras_tuner.Hyperband(
-        hypermodel=build_model,
-        objective="val_loss",
-        max_epochs= max_epochs,
-        overwrite=True,
-        directory=directory,
-        project_name="yhat",)
-    tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
+  print("hyperparameter optimization for yhat")
+  tuner = keras_tuner.Hyperband(
+    hypermodel=build_model,
+    objective="val_loss",
+    max_epochs= max_epochs,
+    overwrite=True,
+    directory=directory,
+    project_name="yhat",)
+  tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
 
-    # Get the optimal hyperparameters
-    best_hps=tuner.get_best_hyperparameters()[0]
-    print("the optimal architecture is: " + str(best_hps.values))
+  # Get the optimal hyperparameters
+  best_hps=tuner.get_best_hyperparameters()[0]
+  print("the optimal architecture is: " + str(best_hps.values))
+  
+  cv = KFold(n_splits=folds, shuffle = False) # K-fold validation shuffle is off to prevent additional noise?
 
-    cv = KFold(n_splits=folds, shuffle = False) # K-fold validation shuffle is off to prevent additional noise?
+  for k, (train_idx, test_idx) in enumerate(cv.split(X)):
+    # set random seeds
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+    random.seed(seed)
+    tf.keras.utils.set_random_seed(seed)
+    
+    #print("training model for m(x)")
+    model_m_x = tuner.hypermodel.build(best_hps)
+    model_m_x.fit(
+      X[train_idx],
+      Y[train_idx],
+      epochs = epochs,
+      batch_size = batch_size,
+      validation_data = (X[test_idx], Y[test_idx]),
+      callbacks= mx_callbacks, # prevent overfitting with early stopping.
+      verbose = 0)
+    model_m_x = tuner.hypermodel.build(best_hps)
+    model_m_x.build(input_shape = (None,X.shape[1]))
+    model_m_x.load_weights(checkpoint_filepath_mx)
+    m_x = model_m_x.predict(x=X[test_idx], verbose = 0).reshape(len(Y[test_idx])) # obtain \hat{m}(x) from test set
 
-    for k, (train_idx, test_idx) in enumerate(cv.split(X)):
-      # set random seeds
-      np.random.seed(seed)
-      tf.random.set_seed(seed)
-      random.seed(seed)
-      tf.keras.utils.set_random_seed(seed)
+    # obtain \tilde{Y} = Y_{i} - \hat{m}(x)
+    truth = Y[test_idx].T.reshape(len(Y[test_idx]))
+    y_tilde = truth - m_x
+    y_tilde_hat = np.concatenate((y_tilde_hat,y_tilde)) # cbind in r
+    m_x_hat = np.concatenate((m_x_hat,m_x)) # cbind in r
 
-      #print("training model for m(x)")
-      model_m_x = tuner.hypermodel.build(best_hps)
-      model_m_x.fit(
-          X[train_idx],
-          Y[train_idx],
-          epochs = epochs,
-          batch_size = batch_size,
-          validation_data = (X[test_idx], Y[test_idx]),
-          callbacks= mx_callbacks, # prevent overfitting with early stopping.
-          verbose = 0)
-      model_m_x = tuner.hypermodel.build(best_hps)
-      model_m_x.build(input_shape = (None,X.shape[1]))
-      model_m_x.load_weights(checkpoint_filepath_mx)
-      m_x = model_m_x.predict(x=X[test_idx], verbose = 0).reshape(len(Y[test_idx])) # obtain \hat{m}(x) from test set
+    ## fit \hat{e}(x)
+    clf = LogisticRegression(verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
+    e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
+    print(f"Fold {fold}: mean(m_x) = {np.round(np.mean(m_x), 2):.2f}, sd(m_x) = {np.round(np.std(m_x), 3):.3f} and mean(e_x) = {np.round(np.mean(e_x[:, 1]), 2):.2f}, sd(e_x) = {np.round(np.std(e_x[:, 1]), 3):.3f}")
 
-      # obtain \tilde{Y} = Y_{i} - \hat{m}(x)
-      #print("obtaining Y_tilde")
-      truth = Y[test_idx].T.reshape(len(Y[test_idx]))
-      y_tilde = truth - m_x
-      y_tilde_hat = np.concatenate((y_tilde_hat,y_tilde)) # cbind in r
-      m_x_hat = np.concatenate((m_x_hat,m_x)) # cbind in r
+    # obtain \tilde{T} = T_{i} - \hat{e}(x)
+    #print("obtaining T_tilde")
+    truth = T[test_idx].T.reshape(len(T[test_idx]))
+    T_tilde = truth - e_x[:,1]
+    T_tilde_hat = np.concatenate((T_tilde_hat,T_tilde))
+    e_x_hat = np.concatenate((e_x_hat,e_x[:,1]))
 
-      ## fit \hat{e}(x)
-      #print("training model for e(x)")
-      clf = LogisticRegression(verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
-      e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
-      print(f"Fold {fold}: mean(m_x) = {np.round(np.mean(m_x), 2):.2f}, sd(m_x) = {np.round(np.std(m_x), 3):.3f} and mean(e_x) = {np.round(np.mean(e_x[:, 1]), 2):.2f}, sd(e_x) = {np.round(np.std(e_x[:, 1]), 3):.3f}")
-
-      # obtain \tilde{T} = T_{i} - \hat{e}(x)
-      #print("obtaining T_tilde")
-      truth = T[test_idx].T.reshape(len(T[test_idx]))
-      T_tilde = truth - e_x[:,1]
-      T_tilde_hat = np.concatenate((T_tilde_hat,T_tilde))
-      e_x_hat = np.concatenate((e_x_hat,e_x[:,1]))
-
-    ## pseudo_outcome and weights
-    pseudo_outcome = (y_tilde_hat/T_tilde_hat) # pseudo_outcome = \tilde{Y} / \tilde{T}
-    w_weigths = np.square(T_tilde_hat) # \tilde{T}**2
+  ## pseudo_outcome and weights
+  pseudo_outcome = (y_tilde_hat/T_tilde_hat) # pseudo_outcome = \tilde{Y} / \tilde{T}
+  w_weigths = np.square(T_tilde_hat) # \tilde{T}**2
 
     
-    print("hyperparameter optimization for tau hat")
-    tuner1 = keras_tuner.Hyperband(
-        hypermodel=build_model,
-        objective="val_loss",
-        max_epochs=max_epochs,
-        overwrite=True,
-        directory=directory,
-        project_name="tau_hat",)
-    tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
-    best_hps_tau =tuner1.get_best_hyperparameters()[0]
-    print("the optimal architecture is: " + str(best_hps_tau.values))
+  print("hyperparameter optimization for tau hat")
+  tuner1 = keras_tuner.Hyperband(
+    hypermodel=build_model,
+    objective="val_loss",
+    max_epochs=max_epochs,
+    overwrite=True,
+    directory=directory,
+    project_name="tau_hat",)
+  tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
+  best_hps_tau =tuner1.get_best_hyperparameters()[0]
+  print("the optimal architecture is: " + str(best_hps_tau.values))
 
-    cv = KFold(n_splits=folds, shuffle = False)
-    print("training for tau hat")
-    for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
-      # set random seeds
-      np.random.seed(seed)
-      tf.random.set_seed(seed)
-      random.seed(seed)
-      tf.keras.utils.set_random_seed(seed)
+  cv = KFold(n_splits=folds, shuffle = False)
+  print("training for tau hat")
+  for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
+    # set random seeds
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+    random.seed(seed)
+    tf.keras.utils.set_random_seed(seed)
       
-      tau_hat = tuner1.hypermodel.build(best_hps_tau)
-      history_tau = tau_hat.fit(
-          X[train_idx],
-          pseudo_outcome[train_idx],
-          sample_weight= w_weigths[train_idx],
-          epochs = epochs,
-          batch_size = batch_size,
-          callbacks = tau_hat_callbacks,
-          validation_data = (X[test_idx], pseudo_outcome[test_idx]),
-          verbose = 0)
-      tau_hat = tuner1.hypermodel.build(best_hps_tau)
-      tau_hat.build(input_shape = (None,X.shape[1]))
-      tau_hat.load_weights(checkpoint_filepath_taux)
-      CATE = tau_hat.predict(x=X[test_idx], verbose = 0).reshape(len(X[test_idx]))
-      print(f"Fold {k}: mean(tau_hat) = " + str(np.round(np.mean(CATE),2)) + ", sd(m_x) = " + str(np.round(np.std(CATE),3)))
+    tau_hat = tuner1.hypermodel.build(best_hps_tau)
+    history_tau = tau_hat.fit(
+      X[train_idx],
+      pseudo_outcome[train_idx],
+      sample_weight= w_weigths[train_idx],
+      epochs = epochs,
+      batch_size = batch_size,
+      callbacks = tau_hat_callbacks,
+      validation_data = (X[test_idx], pseudo_outcome[test_idx]),
+      verbose = 0)
+    tau_hat = tuner1.hypermodel.build(best_hps_tau)
+    tau_hat.build(input_shape = (None,X.shape[1]))
+    tau_hat.load_weights(checkpoint_filepath_taux)
+    CATE = tau_hat.predict(x=X[test_idx], verbose = 0).reshape(len(X[test_idx]))
+    print(f"Fold {k}: mean(tau_hat) = " + str(np.round(np.mean(CATE),2)) + ", sd(m_x) = " + str(np.round(np.std(CATE),3)))
 
-      CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
-    average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
-    print("ATE = " + str(np.round(np.mean(average_treatment_effect), 4)) + ", std(ATE) = " + str(np.round(np.std(average_treatment_effect), 3)))
+    CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
+  average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
+  print("ATE = " + str(np.round(np.mean(average_treatment_effect), 4)) + ", std(ATE) = " + str(np.round(np.std(average_treatment_effect), 3)))
 
-  return average_treatment_effect, CATE_estimates, tau_hat
+return average_treatment_effect, CATE_estimates, tau_hat
 
 import tensorflow_privacy
 from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
