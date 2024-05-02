@@ -23,6 +23,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
     """
 
   import random
+  import pandas as pd
   import tensorflow as tf
   from tensorflow import keras
   from keras import layers
