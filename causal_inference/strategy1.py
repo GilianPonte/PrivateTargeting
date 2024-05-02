@@ -2,32 +2,54 @@ import tensorflow_privacy
 from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
 import keras_tuner
 
-def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner"):
-  from sklearn.linear_model import LogisticRegression
-  from keras.layers import Activation, LeakyReLU
-  from keras import backend as K
-  from keras.utils import get_custom_objects
+def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", seed = None):
+  """
+    Causal Neural Network (CNN) algorithm for estimating average treatment effects.
+
+    Args:
+        X (numpy.ndarray): Features matrix.
+        Y (numpy.ndarray): Outcome vector.
+        T (numpy.ndarray): Treatment vector.
+        scaling (bool, optional): Whether to scale the features matrix. Default is True.
+        batch_size (int, optional): Batch size for training. Default is 100.
+        epochs (int, optional): Number of epochs for training. Default is 100.
+        max_epochs (int, optional): Maximum number of epochs for hyperparameter optimization. Default is 10.
+        folds (int, optional): Number of folds for cross-validation. Default is 5.
+        directory (str, optional): Directory for saving hyperparameter optimization results. Default is "tuner".
+        seed (int, optional): Seed for random number generation. Default is None.
+
+    Returns:
+        tuple: Tuple containing average treatment effect, CATE estimates, and trained tau_hat model.
+    """
 
   import random
   import tensorflow as tf
   from tensorflow import keras
   from keras import layers
   from sklearn.model_selection import KFold
+  from sklearn.linear_model import LogisticRegression
+  from keras.layers import Activation, LeakyReLU
+  from keras import backend as K
+  from keras.utils import get_custom_objects
+  from sklearn.preprocessing import MinMaxScaler
+
+  # set seeds
+  random.seed(seed)
+  np.random.seed(seed)
+  tf.random.set_seed(seed)
 
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping
-  callback1 = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping
 
   # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
   def ATE(y_true, y_pred):
     return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
 
-  # storage of cate estimates
-  average_treatment_effect = []
+  average_treatment_effect = []  # storage of ate estimates
+  CATE_estimates = []
 
   ## scale the data for well-behaved gradients
   if scaling == True:
-    from sklearn.preprocessing import MinMaxScaler
     scaler0 = MinMaxScaler(feature_range = (-1, 1))
     scaler0 = scaler0.fit(X)
     X = scaler0.transform(X)
@@ -36,33 +58,26 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
   get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
 
   def build_model(hp):
-    model = keras.Sequential()
-    model.add(keras.Input(shape=(X.shape[1],)))
-    # Tune the number of layers.
-    for i in range(hp.Int("num_layers", 1, 4)):
-        model.add(
-            layers.Dense(
-                # Tune number of units separately.
-                units=hp.Choice(f"units_{i}", [32, 64,256,512]),
-                activation=hp.Choice("activation", ["leaky-relu", "relu"]),
+        model = keras.Sequential()
+        model.add(keras.Input(shape=(X.shape[1],)))
+        # Tune the number of layers.
+        for i in range(hp.Int("num_layers", 1, 4)):
+            model.add(
+                layers.Dense(
+                    # Tune number of units separately.
+                    units=hp.Choice(f"units_{i}", [8, 16, 32, 64, 256, 512]),
+                    activation=hp.Choice("activation", ["leaky-relu", "relu"]),
+                )
             )
+        model.add(layers.Dense(1, activation="linear"))
+
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            loss="mean_squared_error",
+            metrics=["MSE"],
         )
-    model.add(layers.Dense(1, activation="linear"))
-    #learning_rate = hp.Choice("lr", [1e-2,1e-3,1e-4]),
-
-    model.compile(
-        optimizer=keras.optimizers.Adam(learning_rate=0.001),
-        loss="mean_squared_error",
-        metrics=["MSE"],
-    )
-    return model
-
-  for i in range(0,simulations):
-    print("iteration = " + str(i+1))
-    random.seed(i)
-    np.random.seed(i)
-    tf.random.set_seed(i)
-
+        return model
+    
     # shuffle data
     idx = np.random.permutation(pd.DataFrame(X).index)
     X = np.array(pd.DataFrame(X).reindex(idx))
@@ -70,8 +85,8 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
     T = np.array(pd.DataFrame(T).reindex(idx))
 
     # save models
-    checkpoint_filepath_mx = directory + '/m_x_'+ str(i+1) + '.hdf5'
-    checkpoint_filepath_taux = directory + '/tau_x' + str(i+1) + '.hdf5'
+    checkpoint_filepath_mx = f"{directory}/m_x.hdf5"
+    checkpoint_filepath_taux = f"{directory}/tau_x.hdf5"
     mx_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
     tau_hat_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_taux, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
 
@@ -79,24 +94,30 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
     T_tilde_hat = [] # collect all the \tilde{T}
     m_x_hat = [] # collect all m_x_hat for print
     e_x_hat = [] # collect all e_x_hat for print
-
-    if i == 0: # only cross-validate at first iteration, use same architecture subsequently.
-      print("hyperparameter optimization for yhat")
-      tuner = keras_tuner.Hyperband(
+    
+    print("hyperparameter optimization for yhat")
+    tuner = keras_tuner.Hyperband(
         hypermodel=build_model,
         objective="val_loss",
         max_epochs= max_epochs,
         overwrite=True,
         directory=directory,
         project_name="yhat",)
-      tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
-      # Get the optimal hyperparameters
-      best_hps=tuner.get_best_hyperparameters()[0]
-      print("the optimal architecture is: " + str(best_hps.values))
+    tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
+
+    # Get the optimal hyperparameters
+    best_hps=tuner.get_best_hyperparameters()[0]
+    print("the optimal architecture is: " + str(best_hps.values))
 
     cv = KFold(n_splits=folds, shuffle = False) # K-fold validation shuffle is off to prevent additional noise?
 
     for k, (train_idx, test_idx) in enumerate(cv.split(X)):
+      # set random seeds
+      np.random.seed(seed)
+      tf.random.set_seed(seed)
+      random.seed(seed)
+      tf.keras.utils.set_random_seed(seed)
+
       #print("training model for m(x)")
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.fit(
@@ -105,7 +126,7 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
           epochs = epochs,
           batch_size = batch_size,
           validation_data = (X[test_idx], Y[test_idx]),
-          callbacks= mx_callbacks, # prevent overfitting with early stopping. If val_loss does not decrease after 10 epochs take that model.
+          callbacks= mx_callbacks, # prevent overfitting with early stopping.
           verbose = 0)
       model_m_x = tuner.hypermodel.build(best_hps)
       model_m_x.build(input_shape = (None,X.shape[1]))
@@ -123,7 +144,7 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
       #print("training model for e(x)")
       clf = LogisticRegression(verbose = 0).fit(X[train_idx], np.array(T[train_idx]).reshape(len(T[train_idx])))
       e_x = clf.predict_proba(X[test_idx]) # obtain \hat{e}(x)
-      print(f"Fold {k}: mean(m_x) = " + str(np.round(np.mean(m_x),2)) + ", sd(m_x) = " + str(np.round(np.std(m_x),3)) + " and mean(e_x) = " + str(np.round(np.mean(e_x[:,1]),2)) + ", sd(e_x) = " + str(np.round(np.std(e_x[:,1]),3)))
+      print(f"Fold {fold}: mean(m_x) = {np.round(np.mean(m_x), 2):.2f}, sd(m_x) = {np.round(np.std(m_x), 3):.3f} and mean(e_x) = {np.round(np.mean(e_x[:, 1]), 2):.2f}, sd(e_x) = {np.round(np.std(e_x[:, 1]), 3):.3f}")
 
       # obtain \tilde{T} = T_{i} - \hat{e}(x)
       #print("obtaining T_tilde")
@@ -132,31 +153,32 @@ def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100
       T_tilde_hat = np.concatenate((T_tilde_hat,T_tilde))
       e_x_hat = np.concatenate((e_x_hat,e_x[:,1]))
 
-    # storage
-    CATE_estimates = []
-    CATE = []
-
     ## pseudo_outcome and weights
     pseudo_outcome = (y_tilde_hat/T_tilde_hat) # pseudo_outcome = \tilde{Y} / \tilde{T}
     w_weigths = np.square(T_tilde_hat) # \tilde{T}**2
 
-    if i == 0:
-      print("hyperparameter optimization for tau hat")
-      tuner1 = keras_tuner.Hyperband(
-          hypermodel=build_model,
-          objective="val_loss",
-          max_epochs=max_epochs,
-          overwrite=True,
-          directory=directory,
-          project_name="tau_hat",)
-      tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0, callbacks = [callback1])
-      best_hps_tau =tuner1.get_best_hyperparameters()[0]
-      print("the optimal architecture is: " + str(best_hps_tau.values))
+    
+    print("hyperparameter optimization for tau hat")
+    tuner1 = keras_tuner.Hyperband(
+        hypermodel=build_model,
+        objective="val_loss",
+        max_epochs=max_epochs,
+        overwrite=True,
+        directory=directory,
+        project_name="tau_hat",)
+    tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
+    best_hps_tau =tuner1.get_best_hyperparameters()[0]
+    print("the optimal architecture is: " + str(best_hps_tau.values))
 
     cv = KFold(n_splits=folds, shuffle = False)
     print("training for tau hat")
     for  k, (train_idx, test_idx) in enumerate(cv.split(X)):
-
+      # set random seeds
+      np.random.seed(seed)
+      tf.random.set_seed(seed)
+      random.seed(seed)
+      tf.keras.utils.set_random_seed(seed)
+      
       tau_hat = tuner1.hypermodel.build(best_hps_tau)
       history_tau = tau_hat.fit(
           X[train_idx],
