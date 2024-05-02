@@ -13,7 +13,7 @@ protect = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5,1,3,5
     protected_selection = protection(epsilon = epsilon, selection = CATE_estimates, top = top)
     collection = cbind(collection, protected_selection)
   }
-  colnames(collection) = c("customer", paste0("", gsub("\\.", "", as.character(paste0("epsilon_", epsilon_range)))))
+  colnames(collection) = c("customer", paste0("", gsub("\\.", "", as.character(paste0("epsilon_", epsilons)))))
   collection$random = sample(x = c(0,1), size = n, replace = TRUE, prob= c(1-percent,percent))
   collection$percentage = percent
   return(collection)
