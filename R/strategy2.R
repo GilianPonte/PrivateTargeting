@@ -18,6 +18,9 @@ protect = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5,1,3,5
   collection$percentage = percent
   collection$selection_true = selection_true
   collection$selection_tau = selection_tau
+  if(length(data$tau) > 0){
+    collection$tau = CATE
+  }
   return(collection)
 }
 
