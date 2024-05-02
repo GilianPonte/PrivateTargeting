@@ -18,7 +18,7 @@ protection = function(epsilon, selection, top){
   protected_selection = 0 # set the selection to zero again
   
   if(top > length(index)){
-    protected_selection[sample(index, length(index))] = 1 # sample everyone from index005
+    protected_selection[sample(index, length(index))] = 1 # sample everyone from index
     protected_selection[sample(index_0, top - length(index))] = 1 # sample from not selected to get equal amount to top (top-length is remainder)
     }else{
       protected_selection[sample(index, top)] = 1
