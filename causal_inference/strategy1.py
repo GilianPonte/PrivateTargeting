@@ -193,7 +193,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
     tau_hat.build(input_shape = (None,X.shape[1]))
     tau_hat.load_weights(checkpoint_filepath_taux)
     CATE = tau_hat.predict(x=X[test_idx], verbose = 0).reshape(len(X[test_idx]))
-    print(f"Fold {k}: mean(tau_hat) = " + str(np.round(np.mean(CATE),2)) + ", sd(m_x) = " + str(np.round(np.std(CATE),3)))
+    print(f"Fold {fold}: mean(tau_hat) = " + str(np.round(np.mean(CATE),2)) + ", sd(m_x) = " + str(np.round(np.std(CATE),3)))
 
     CATE_estimates = np.concatenate((CATE_estimates,CATE)) # store CATE's
   average_treatment_effect = np.append(average_treatment_effect, np.mean(CATE_estimates))
