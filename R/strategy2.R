@@ -1,4 +1,4 @@
-protection = function(epsilon, selection, top){
+protection = function(epsilon, selection = pop, top){
   # privacy settings
   P = matrix(nrow = 2, ncol = 2)
   diag(P) = (exp(epsilon))/(2-1+exp(epsilon))
@@ -15,10 +15,10 @@ protection = function(epsilon, selection, top){
   protected_selection = responses # make responses equal to the selection
   index_0 = which(protected_selection == 0) # select the rownumbers that are equal to 0
   index = which(protected_selection == 1) # select the rownumbers that are equal to 0
-  protected_selection = 0 # set the selection to zero again
+  protected_selection = rep(0,length(selection)) # set the selection to zero again
   
   if(top > length(index)){
-    protected_selection[sample(index, length(index))] = 1 # sample everyone from index
+    protected_selection[sample(index, length(index))] = 1 # sample everyone from index005
     protected_selection[sample(index_0, top - length(index))] = 1 # sample from not selected to get equal amount to top (top-length is remainder)
     }else{
       protected_selection[sample(index, top)] = 1
