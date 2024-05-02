@@ -55,7 +55,7 @@ for i in range(iterations):
   tensorflow.keras.utils.set_random_seed(seeds_data[i])
 
   # read data
-  data = simulation1.data_simulation(100000)
+  data = simulation_data.data_simulation(100000)
 
   # Separate the columns into different DataFrames
   x = data[['covariate_1', 'covariate_2', 'covariate_3', 'covariate_4', 'covariate_5', 'covariate_6']]
