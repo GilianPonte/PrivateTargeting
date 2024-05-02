@@ -8,11 +8,10 @@ protect = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5,1,3,5
   }
   
   # now with local dp
-  pop = selection_tau
   collection = data.frame(customer = 1:n)
   for (epsilon in epsilons){
     print(epsilon)
-    protected_selection = protection(epsilon = epsilon, selection = CATE_estimates, top = top)
+    protected_selection = protection(epsilon = epsilon, selection = selection_tau, top = top)
     collection = cbind(collection, protected_selection)
   }
   colnames(collection) = c("customer", paste0("", gsub("\\.", "", as.character(paste0("epsilon_", epsilons)))))
