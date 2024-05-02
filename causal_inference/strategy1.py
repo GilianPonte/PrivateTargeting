@@ -2,7 +2,7 @@ import tensorflow_privacy
 from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
 import keras_tuner
 
-def cnn(X, Y, T, scaling = True, simulations = 1, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", seed = None):
+def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", seed = None):
   """
     Causal Neural Network (CNN) algorithm for estimating average treatment effects.
 
