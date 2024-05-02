@@ -42,7 +42,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
 
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping
-
+  callback1 = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping
   # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
   def ATE(y_true, y_pred):
     return tf.reduce_mean(y_pred, axis=-1)  # Note the `axis=-1`
@@ -166,7 +166,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
     overwrite=True,
     directory=directory,
     project_name="tau_hat",)
-  tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
+  tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0, callbacks = [callback1])
   best_hps_tau =tuner1.get_best_hyperparameters()[0]
   print("the optimal architecture is: " + str(best_hps_tau.values))
 
