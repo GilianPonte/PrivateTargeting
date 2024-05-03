@@ -11,7 +11,7 @@ protect_CATEs = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5
   collection = data.frame(customer = 1:n)
   for (epsilon in epsilons){
     print(epsilon)
-    protected_selection = protection(epsilon = epsilon, selection = selection_tau, top = top)
+    protected_selection = protect_selection(epsilon = epsilon, selection = selection_tau, top = top)
     collection = cbind(collection, protected_selection)
   }
   colnames(collection) = c("customer", paste0("", gsub("\\.", "", as.character(paste0("epsilon_", epsilons)))))
