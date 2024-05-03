@@ -54,12 +54,13 @@ protect_selection = function(epsilon, selection, top){
 }
 
 
-bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates){
+bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, seed){
   # Initialize a list to store bootstrap results
   bootstrap_results <- data.frame()
   
   # Loop over each bootstrap iteration
   for (b in 1:bootstraps) {
+    set.seed(seed)
     print(b)
     # Resample the data with replacement
     bootstrap_data <- CATE[sample(length(CATE), replace = TRUE)]
