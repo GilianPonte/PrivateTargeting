@@ -1,4 +1,4 @@
-protect = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5,1,3,5)){
+protect_CATEs = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5,1,3,5)){
   top = floor(n * percent)
   selection_true = rep(0, n)
   selection_tau = rep(0, n)
@@ -25,7 +25,7 @@ protect = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5,1,3,5
   return(collection)
 }
 
-protection = function(epsilon, selection, top){
+protect_selection = function(epsilon, selection, top){
   # privacy settings
   P = matrix(nrow = 2, ncol = 2)
   diag(P) = (exp(epsilon))/(2-1+exp(epsilon))
