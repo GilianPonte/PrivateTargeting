@@ -35,16 +35,9 @@ protect_selection = function(epsilon, selection, top){
   responses = rep(0,length(selection))
   
   # for every row in the responses generate protected selection based on matrix above.
-  #for (i in 1:length(selection)){
-    #responses[i] = ifelse(selection[i] == 0, sample(x = c(1:2)-1,size = 1,prob= P[1,]), sample(x = c(1:2)-1,size = 1,prob=P[2,]))
-  #}
-  responses <- sapply(selection, function(sel) {
-  if (sel == 0) {
-    sample(0:1, size = 1, prob = P[1, ])
-  } else {
-    sample(0:1, size = 1, prob = P[2, ])
+  for (i in 1:length(selection)){
+    responses[i] = ifelse(selection[i] == 0, sample(x = c(1:2)-1,size = 1,prob= P[1,]), sample(x = c(1:2)-1,size = 1,prob=P[2,]))
   }
-})
   
   protected_selection = responses # make responses equal to the selection
   index_0 = which(protected_selection == 0) # select the rownumbers that are equal to 0
