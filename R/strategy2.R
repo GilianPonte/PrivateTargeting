@@ -52,3 +52,36 @@ protect_selection = function(epsilon, selection, top){
   }
   return(protected_selection)
 }
+
+
+bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates){
+  # Initialize a list to store bootstrap results
+  bootstrap_results <- data.frame()
+  
+  # Loop over each bootstrap iteration
+  for (b in 1:bootstraps) {
+    print(b)
+    # Resample the data with replacement
+    bootstrap_data <- CATE[sample(length(CATE), replace = TRUE)]
+    
+    # Initialize an object to store results for this bootstrap
+    percentage_collection <- NULL
+    
+    # Loop over each percentage level
+    for (percent in percentage) {
+      # Apply the protect function using the bootstrap sample
+      collection <- protect_CATEs(percent = percent,
+                            CATE = CATE,
+                            CATE_estimates = CATE_estimates,
+                            n = length(CATE_estimates),
+                            epsilons = c(0.05, 0.5, 1, 3, 5))
+      collection$percent <- percent
+      percentage_collection <- rbind(percentage_collection, collection)
+    }
+    
+    # Store the results from this bootstrap iteration
+    percentage_collection$bootstrap = b
+    bootstrap_results = rbind(bootstrap_results, percentage_collection)
+  }
+  return(bootstrap_results)
+}
