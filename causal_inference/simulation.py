@@ -43,7 +43,7 @@ seeds_data = read_file("seeds_data.txt")
 seeds_training = read_file("seeds_training.txt")
 
 # simulation parameters
-iterations = 1
+iterations = 100
 results_list = []
 noise_multipliers = [0,8.7,3.4,1.12,0.845,0.567,0.3543] # Initialize lists to store results for each noise multiplier
 
@@ -100,8 +100,8 @@ for i in range(iterations):
             T=w,
             scaling=True,
             batch_size=100,
-            epochs=100,
-            max_epochs=10,
+            epochs=1,
+            max_epochs=1,
             fixed_model = True,
             directory=directory,  # Use the directory variable here
             noise_multiplier=noise_multiplier,
