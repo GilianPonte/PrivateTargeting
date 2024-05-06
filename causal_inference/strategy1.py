@@ -104,7 +104,8 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
     max_epochs= max_epochs,
     overwrite=True,
     directory=directory,
-    project_name="yhat",)
+    project_name="yhat",
+    seed = seed,)
   tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
 
   # Get the optimal hyperparameters
@@ -165,7 +166,8 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
     max_epochs=max_epochs,
     overwrite=True,
     directory=directory,
-    project_name="tau_hat",)
+    project_name="tau_hat",
+    seed = seed,)
   tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0, callbacks = [callback1])
   best_hps_tau =tuner1.get_best_hyperparameters()[0]
   print("the optimal architecture is: " + str(best_hps_tau.values))
