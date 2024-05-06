@@ -45,7 +45,7 @@ seeds_training = read_file("seeds_training.txt")
 # simulation parameters
 iterations = 1
 results_list = []
-noise_multipliers = [0] #8.7,3.4,1.12,0.845,0.567,0.3543 # Initialize lists to store results for each noise multiplier
+noise_multipliers = [0,8.7,3.4,1.12,0.845,0.567,0.3543] # Initialize lists to store results for each noise multiplier
 
 for i in range(iterations):
   print("Iteration: {}".format(i, i))
