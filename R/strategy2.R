@@ -92,7 +92,7 @@ bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, percentage = seq(
 
 policy_overlap = function(data, bootstrap = FALSE){
   if (bootstrap == TRUE){
-    overlap = data %>% dplyr::select(customer, selection_true, selection_tau, epsilon_005, epsilon_05,
+    overlap = data dplyr::select(customer, selection_true, selection_tau, epsilon_005, epsilon_05,
                                  epsilon_1,epsilon_3,epsilon_5, random, percent,bootstrap) %>%
   group_by(percent, bootstrap) %>%
   filter(percent > 0) %>% filter(percent < 1) %>%
@@ -103,7 +103,7 @@ policy_overlap = function(data, bootstrap = FALSE){
             overlap_3 = table(selection_true, epsilon_3)[2,2]/sum(selection_true),
             overlap_5 = table(selection_true, epsilon_5)[2,2]/sum(selection_true), .groups = "keep") %>% 
   pivot_longer(c(overlap_random, overlap_005, overlap_05,overlap_1,overlap_3,overlap_5)) %>%
-  group_by(name) %>%
+  group_by(percent,name) %>%
   summarize(mean_overlap = mean(value),
             lower = quantile(value, probs = 0.025),
             upper = quantile(value, probs = 0.975))
