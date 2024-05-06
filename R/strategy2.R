@@ -132,13 +132,10 @@ policy_profit = function(data, bootstrap = FALSE){
             upper = quantile(profit, probs = 0.975))
   }else{
     data %>% dplyr::select(tau, selection_true, selection_tau, epsilon_005, epsilon_05,
-                                                                 epsilon_1,epsilon_3,epsilon_5, random, percent) %>%
-  pivot_longer(c(selection_true, selection_tau,  epsilon_005, epsilon_05,
-                 epsilon_1,epsilon_3,epsilon_5, random)) %>% 
+                                        epsilon_1,epsilon_3,epsilon_5, random, percent) %>%
+    pivot_longer(c(selection_true, selection_tau,  epsilon_005, epsilon_05,
+                   epsilon_1,epsilon_3,epsilon_5, random)) %>% 
   group_by(percent,name) %>% 
-  summarize(profit = (sum(tau*value))) %>%
-  summarize(mean_profit = mean(profit),
-            lower = quantile(profit, probs = 0.025),
-            upper = quantile(profit, probs = 0.975))
+  summarize(profit = (sum(tau*value)))
   }
 }
