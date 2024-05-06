@@ -92,7 +92,7 @@ bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, percentage = seq(
 
 policy_overlap = function(data, bootstrap = FALSE){
   if (bootstrap == TRUE){
-    data %>% dplyr::select(customer, selection_true, selection_tau, epsilon_005, epsilon_05,
+    overlap = data %>% dplyr::select(customer, selection_true, selection_tau, epsilon_005, epsilon_05,
                                  epsilon_1,epsilon_3,epsilon_5, random, percent,bootstrap) %>%
   group_by(percent, bootstrap) %>%
   filter(percent > 0) %>% filter(percent < 1) %>%
@@ -126,7 +126,7 @@ policy_overlap = function(data, bootstrap = FALSE){
 
 policy_profit = function(data, bootstrap = FALSE){
   if (bootstrap == TRUE){
-    data %>% dplyr::select(tau, selection_true, selection_tau, epsilon_005, epsilon_05,
+    profit = data %>% dplyr::select(tau, selection_true, selection_tau, epsilon_005, epsilon_05,
                                                                  epsilon_1,epsilon_3,epsilon_5, random, percent, bootstrap) %>%
   pivot_longer(c(selection_true, selection_tau,  epsilon_005, epsilon_05,
                  epsilon_1,epsilon_3,epsilon_5, random)) %>% 
@@ -136,11 +136,12 @@ policy_profit = function(data, bootstrap = FALSE){
             lower = quantile(profit, probs = 0.025),
             upper = quantile(profit, probs = 0.975))
   }else{
-    data %>% dplyr::select(tau, selection_true, selection_tau, epsilon_005, epsilon_05,
+    profit = data %>% dplyr::select(tau, selection_true, selection_tau, epsilon_005, epsilon_05,
                                         epsilon_1,epsilon_3,epsilon_5, random, percent) %>%
     pivot_longer(c(selection_true, selection_tau,  epsilon_005, epsilon_05,
                    epsilon_1,epsilon_3,epsilon_5, random)) %>% 
   group_by(percent,name) %>% 
   summarize(profit = (sum(tau*value)))
   }
+  return(profit)
 }
