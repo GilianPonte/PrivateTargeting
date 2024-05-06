@@ -119,7 +119,7 @@ policy_overlap = function(data, bootstrap = FALSE){
   return(overlap)
 }
 
-policy_profit = function(data, bootstrap){
+policy_profit = function(data, bootstrap = FALSE){
   if (bootstrap == TRUE){
     data %>% dplyr::select(tau, selection_true, selection_tau, epsilon_005, epsilon_05,
                                                                  epsilon_1,epsilon_3,epsilon_5, random, percent, bootstrap) %>%
