@@ -36,7 +36,7 @@ os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
 
 # Generate and write seeds for seeds_data.txt
 generate_and_write_seeds("seeds_data.txt", 100)
-generate_and_write_seeds("seeds_training.txt", 600)
+generate_and_write_seeds("seeds_training.txt", 700)
 
 # Read seeds_data and seeds_training from file
 seeds_data = read_file("seeds_data.txt")
@@ -45,7 +45,7 @@ seeds_training = read_file("seeds_training.txt")
 # simulation parameters
 iterations = 1
 results_list = []
-noise_multipliers = [8.7,3.4,1.12,0.845,0.567,0.3543] # Initialize lists to store results for each noise multiplier
+noise_multipliers = [0] #8.7,3.4,1.12,0.845,0.567,0.3543 # Initialize lists to store results for each noise multiplier
 
 for i in range(iterations):
   print("Iteration: {}".format(i, i))
@@ -63,6 +63,7 @@ for i in range(iterations):
 
   # Loop through each noise multiplier value
   for noise_index, noise_multiplier in enumerate(noise_multipliers):
+    print(noise_multiplier)
 
     for a in range(100):
       combined_number = (noise_index * 100) + a
@@ -77,19 +78,35 @@ for i in range(iterations):
       os.makedirs(directory, exist_ok=True)  # Create the directory if it doesn't exist
 
       # Call the function with the current noise_multiplier value
-      average_treatment_effect, CATE_estimates, tau_hat, n, epsilon, noise_multiplier, epsilon_conservative = strategy1.pcnn(
-        X=x,
-        Y=y,
-        T=w,
-        scaling=True,
-        batch_size=100,
-        epochs=100,
-        max_epochs=10,
-        fixed_model = True,
-        directory=directory,  # Use the directory variable here
-        noise_multiplier=noise_multiplier,
-        seed = seeds_training[combined_number]
-        )
+      if noise_multiplier == 0:
+        print("no privacy")
+        average_treatment_effect, CATE_estimates, tau_hat = strategy1.cnn(X = x,
+                                                                  Y = y,
+                                                                  T = w,
+                                                                  scaling = True,
+                                                                  batch_size = 100,
+                                                                  epochs = 1,
+                                                                  max_epochs = 1,
+                                                                  folds = 10,
+                                                                  directory = directory,
+                                                                  seed = seeds_training[combined_number])
+        epsilon = 0
+        n = len(x)
+        epsilon_conservative = 0
+      if noise_multiplier != 0:
+        average_treatment_effect, CATE_estimates, tau_hat, n, epsilon, noise_multiplier, epsilon_conservative = strategy1.pcnn(
+            X=x,
+            Y=y,
+            T=w,
+            scaling=True,
+            batch_size=100,
+            epochs=100,
+            max_epochs=10,
+            fixed_model = True,
+            directory=directory,  # Use the directory variable here
+            noise_multiplier=noise_multiplier,
+            seed = seeds_training[combined_number]
+            )
       # Append the results to the list
       results_list.append({
           'Noise Multiplier': noise_multiplier,
