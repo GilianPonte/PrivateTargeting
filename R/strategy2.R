@@ -92,7 +92,7 @@ bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, percentage = seq(
 
 policy_overlap = function(data, bootstrap = FALSE){
   if (bootstrap == TRUE){
-    overlap = data dplyr::select(customer, selection_true, selection_tau, epsilon_005, epsilon_05,
+    overlap = data %>% dplyr::select(customer, selection_true, selection_tau, epsilon_005, epsilon_05,
                                  epsilon_1,epsilon_3,epsilon_5, random, percent,bootstrap) %>%
   group_by(percent, bootstrap) %>%
   filter(percent > 0) %>% filter(percent < 1) %>%
