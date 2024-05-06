@@ -54,7 +54,7 @@ protect_selection = function(epsilon, selection, top){
 }
 
 
-bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, seed = 1){
+bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, percentage = seq(0, 1, by = 0.05), epsilons = c(0.05, 0.5, 1, 3, 5), seed = 1){
   set.seed(seed)
   # Initialize a list to store bootstrap results
   bootstrap_results <- data.frame()
