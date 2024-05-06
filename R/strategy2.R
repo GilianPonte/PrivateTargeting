@@ -102,7 +102,7 @@ policy_overlap = function(data, bootstrap = FALSE){
               overlap_3 = table(selection_true, epsilon_3)[2,2]/sum(selection_true),
               overlap_5 = table(selection_true, epsilon_5)[2,2]/sum(selection_true))
   if (bootstrap == TRUE){
-    dplyr::select(customer, selection_true, selection_tau, epsilon_005, epsilon_05,
+    overlap = data %>% dplyr::select(customer, selection_true, selection_tau, epsilon_005, epsilon_05,
                   epsilon_1,epsilon_3,epsilon_5, random, percent) %>%
     group_by(percent, bootstrap) %>% 
     summarize(overlap_random = table(selection_true, random)[2,2]/sum(selection_true),
