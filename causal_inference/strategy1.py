@@ -39,6 +39,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
   random.seed(seed)
   np.random.seed(seed)
   tf.random.set_seed(seed)
+  tf.keras.utils.set_random_seed(seed)
 
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping
