@@ -11,7 +11,7 @@ protect_CATEs = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5
   # now with local dp
   collection = data.frame(customer = 1:n)
   for (epsilon in epsilons){
-    print(epsilon)
+    cat(epsilon)
     protected_selection = protect_selection(epsilon = epsilon, selection = selection_tau, top = top)
     collection = cbind(collection, protected_selection)
   }
@@ -65,7 +65,7 @@ bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, percentage = seq(
   # Loop over each bootstrap iteration
   for (b in 1:bootstraps) {
     set.seed(seed+b)
-    print(b)
+    cat(b)
     # Resample the data with replacement
     bootstrap_data <- CATE[sample(length(CATE), replace = TRUE)]
     
