@@ -63,9 +63,56 @@ def policy_profit(data, bootstrap=False):
                   .apply(lambda x: np.sum(x['tau'] * x['value']))
                   .reset_index(name='profit'))
     return profit
+import pandas as pd
+import numpy as np
 
+def policy_overlap(data, bootstrap=False):
+    if bootstrap:
+        overlap = (data[['customer', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050', 'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent', 'bootstrap']]
+                   .groupby(['percent', 'bootstrap'])
+                   .filter(lambda x: (x['percent'] > 0).all() and (x['percent'] < 1).all())
+                   .assign(overlap_random=lambda x: x.groupby(['selection_true', 'random'])['random'].transform('size') /
+                                                  x['selection_true'].sum(),
+                           overlap_05=lambda x: x.groupby(['selection_true', 'epsilon_050'])['epsilon_050'].transform('size') /
+                                                x['selection_true'].sum(),
+                           overlap_005=lambda x: x.groupby(['selection_true', 'epsilon_005'])['epsilon_005'].transform('size') /
+                                                 x['selection_true'].sum(),
+                           overlap_1=lambda x: x.groupby(['selection_true', 'epsilon_100'])['epsilon_100'].transform('size') /
+                                               x['selection_true'].sum(),
+                           overlap_3=lambda x: x.groupby(['selection_true', 'epsilon_300'])['epsilon_300'].transform('size') /
+                                               x['selection_true'].sum(),
+                           overlap_5=lambda x: x.groupby(['selection_true', 'epsilon_500'])['epsilon_500'].transform('size') /
+                                               x['selection_true'].sum())
+                   .melt(id_vars=['percent', 'bootstrap'], var_name='name', value_name='value')
+                   .groupby(['percent', 'name'])
+                   .agg(mean_overlap=('value', 'mean'),
+                        lower=('value', lambda x: np.quantile(x, 0.025)),
+                        upper=('value', lambda x: np.quantile(x, 0.975))))
+
+    else:
+        overlap = (data[['customer', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050', 'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent']]
+                   .groupby('percent')
+                   .filter(lambda x: (x['percent'] > 0).all() and (x['percent'] < 1).all())
+                   .assign(overlap_random=lambda x: x.groupby(['selection_true', 'random'])['random'].transform('size') /
+                                                  x['selection_true'].sum(),
+                           overlap_05=lambda x: x.groupby(['selection_true', 'epsilon_050'])['epsilon_050'].transform('size') /
+                                                x['selection_true'].sum(),
+                           overlap_005=lambda x: x.groupby(['selection_true', 'epsilon_005'])['epsilon_005'].transform('size') /
+                                                 x['selection_true'].sum(),
+                           overlap_1=lambda x: x.groupby(['selection_true', 'epsilon_100'])['epsilon_100'].transform('size') /
+                                               x['selection_true'].sum(),
+                           overlap_3=lambda x: x.groupby(['selection_true', 'epsilon_300'])['epsilon_300'].transform('size') /
+                                               x['selection_true'].sum(),
+                           overlap_5=lambda x: x.groupby(['selection_true', 'epsilon_500'])['epsilon_500'].transform('size') /
+                                               x['selection_true'].sum())
+                   .groupby('percent')
+                   .agg(mean_overlap=('value', 'mean'),
+                        lower=('value', lambda x: np.quantile(x, 0.025)),
+                        upper=('value', lambda x: np.quantile(x, 0.975))))
+
+    return overlap
     
-def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0, 1, 0.2), epsilons=[0.05, 1], seed=1):
+def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0, 1, 0.05), epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
     np.random.seed(seed)
     seeds = np.random.choice(range(1, 1000000), size=bootstraps, replace=False)
     bootstrap_results = pd.DataFrame()
@@ -80,4 +127,3 @@ def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0, 
         percentage_collection['bootstrap'] = b
         bootstrap_results = pd.concat([bootstrap_results, percentage_collection], ignore_index=True)
     return bootstrap_results
-
