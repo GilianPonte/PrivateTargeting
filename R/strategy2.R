@@ -55,9 +55,7 @@ protect_selection = function(epsilon, selection, top, seed = 1){
   return(protected_selection)
 }
 
-
-
-bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, percentage = seq(0, 1, by = 0.05), epsilons = c(0.05, 0.5, 1, 3, 5), seed = 1){
+bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, percentage = seq(0.1, .9, by = 0.1), epsilons = c(0.05, 0.5, 1, 3, 5), seed = 1){
     # Set the number of seeds
     set.seed(seed)
     seeds <- sample(1:1000000, bootstraps, replace = FALSE)
