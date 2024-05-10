@@ -45,7 +45,7 @@ def protect_selection(epsilon, selection, top, seed=1):
         protected_selection[np.random.choice(index_1, top, replace=False)] = 1
     return protected_selection
     
-def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0, 1.05, 0.05), epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
+def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.1, 1, 0.1), epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
     np.random.seed(seed)
     seeds = np.random.choice(range(1, 1000000), size=bootstraps, replace=False)
     bootstrap_results = pd.DataFrame()
