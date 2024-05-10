@@ -27,7 +27,6 @@ protect_CATEs = function(percent, CATE, CATE_estimates, n, epsilons = c(0.05,0.5
 }
 
 protect_selection = function(epsilon, selection, top, seed = 1){
-  set.seed(seed)
   # privacy settings
   P = matrix(nrow = 2, ncol = 2)
   diag(P) = (exp(epsilon))/(2-1+exp(epsilon))
