@@ -67,7 +67,7 @@ bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, percentage = seq(
     
     # Loop over each bootstrap iteration
     for (b in 1:bootstraps) {
-      set.seed(seed[b])
+      set.seed(seeds[b])
       # Resample the data with replacement
       bootstrap_data <- CATE[sample(length(CATE), replace = TRUE)]
     
