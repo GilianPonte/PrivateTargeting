@@ -54,6 +54,7 @@ def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0, 
         bootstrap_data = np.random.choice(CATE, size=len(CATE), replace=True)
         percentage_collection = pd.DataFrame()
         for percent in percentage:
+            np.random.seed(seeds[b])
             collection = protect_CATEs(percent, bootstrap_data, CATE_estimates, len(CATE_estimates), epsilons, seeds[b])
             collection['percent'] = percent
             percentage_collection = pd.concat([percentage_collection, collection], ignore_index=True)
