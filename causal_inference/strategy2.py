@@ -1,81 +1,113 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-def protect_selection(epsilon, selection, top):
-    # Privacy settings
-    exp_epsilon = np.exp(epsilon)
-    P = np.array([[exp_epsilon, 1 - exp_epsilon], 
-                  [1 - exp_epsilon, exp_epsilon]]) / (1 + exp_epsilon)
-    
-    # Get responses
-    responses = np.zeros(len(selection), dtype=int)
-    
-    # Generate protected selection based on matrix above
-    for i in range(len(selection)):
-        responses[i] = np.random.choice([0, 1], p=P[1, :] if selection[i] == 1 else P[0, :])
-    
-    # Initialize protected selection
-    protected_selection = np.zeros(len(selection), dtype=int)
-    
-    # Select indices of zeros and ones
-    index_0, index_1 = responses == 0, responses == 1
-    
-    # Apply selection logic
-    if top > np.sum(index_1):
-        protected_selection[np.random.choice(np.where(index_1)[0], np.sum(index_1), replace=False)] = 1
-        protected_selection[np.random.choice(np.where(index_0)[0], top - np.sum(index_1), replace=False)] = 1
-    else:
-        protected_selection[np.random.choice(np.where(index_1)[0], top, replace=False)] = 1
-    
-    return protected_selection
-
-def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons=[0.05, 0.5, 1, 3, 5]):
-    top = int(np.floor(n * percent))
-    selection_true = np.zeros(n, dtype=int)
-    selection_tau = np.zeros(n, dtype=int)
-    
-    # Determine top selections based on CATE estimates
-    selection_tau[np.argsort(-CATE_estimates)[:top]] = 1
+def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
+    np.random.seed(seed)
+    top = int(n * percent)
+    selection_true = np.zeros(n)
+    selection_tau = np.zeros(n)
+    indices_tau = np.argsort(CATE_estimates)[::-1][:top]
+    selection_tau[indices_tau] = 1
     if len(CATE) > 0:
-        selection_true[np.argsort(-CATE)[:top]] = 1
-    
-    # Now with local dp
+        indices_true = np.argsort(CATE)[::-1][:top]
+        selection_true[indices_true] = 1
+
     collection = pd.DataFrame({'customer': np.arange(1, n+1)})
     for epsilon in epsilons:
-        print(epsilon)
         protected_selection = protect_selection(epsilon, selection_tau, top)
-        collection[f"epsilon_{str(epsilon).replace('.', '')}"] = protected_selection
+        collection[f'epsilon_{epsilon:.2f}'.replace('.', '')] = protected_selection
     
-    collection['random'] = np.random.choice([0, 1], size=n, p=[1-percent, percent])
+    collection['random'] = np.random.choice([0, 1], size=n, replace=True, p=[1-percent, percent])
     collection['percentage'] = percent
     collection['selection_true'] = selection_true
     collection['selection_tau'] = selection_tau
     if len(CATE) > 0:
         collection['tau'] = CATE
-    
     return collection
 
-def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage):
-    # Initialize a DataFrame to store bootstrap results
-    bootstrap_results = pd.DataFrame()
+def protect_selection(epsilon, selection, top, seed=1):
+    np.random.seed(seed)
+    P = np.zeros((2, 2))
+    exp_eps = np.exp(epsilon)
+    P[np.diag_indices_from(P)] = exp_eps / (2 - 1 + exp_eps)
+    P[~np.isfinite(P)] = 1 / (2 - 1 + exp_eps)
+    responses = np.zeros(len(selection))
+    for i in range(len(selection)):
+        np.random.seed(seed + i)
+        responses[i] = np.random.choice([0, 1], p=P[int(selection[i]), :])
+    protected_selection = np.zeros(len(selection))
+    index_0 = np.where(responses == 0)[0]
+    index_1 = np.where(responses == 1)[0]
+    if top > len(index_1):
+        protected_selection[np.random.choice(index_1, len(index_1), replace=False)] = 1
+        protected_selection[np.random.choice(index_0, top - len(index_1), replace=False)] = 1
+    else:
+        protected_selection[np.random.choice(index_1, top, replace=False)] = 1
+    return protected_selection
     
-    # Loop over each bootstrap iteration
+def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0, 1.05, 0.05), epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
+    np.random.seed(seed)
+    seeds = np.random.choice(range(1, 1000000), size=bootstraps, replace=False)
+    bootstrap_results = pd.DataFrame()
     for b in range(bootstraps):
-        print(b)
-        # Resample the data with replacement
+        np.random.seed(seeds[b])
         bootstrap_data = np.random.choice(CATE, size=len(CATE), replace=True)
-        
-        # Initialize an object to store results for this bootstrap
         percentage_collection = pd.DataFrame()
-        
-        # Loop over each percentage level
         for percent in percentage:
-            collection = protect_CATEs(percent=percent, CATE=bootstrap_data, CATE_estimates=CATE_estimates, n=len(CATE_estimates), epsilons=[0.05, 0.5, 1, 3, 5])
+            collection = protect_CATEs(percent, bootstrap_data, CATE_estimates, len(CATE_estimates), epsilons, seeds[b])
             collection['percent'] = percent
             percentage_collection = pd.concat([percentage_collection, collection], ignore_index=True)
-        
-        # Store the results from this bootstrap iteration
         percentage_collection['bootstrap'] = b
         bootstrap_results = pd.concat([bootstrap_results, percentage_collection], ignore_index=True)
-    
     return bootstrap_results
+import pandas as pd
+
+def policy_overlap(data, bootstrap=False):
+    if bootstrap:
+        results = []
+        for (percent, boot), group in data.groupby(['percent', 'bootstrap']):
+            if 0 < percent < 1:
+                subset = group[['selection_true', 'random', 'epsilon_005', 'epsilon_05', 'epsilon_1', 'epsilon_3', 'epsilon_5']]
+                overlap = {
+                    'overlap_random': ((subset['selection_true'] == 1) & (subset['random'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_005': ((subset['selection_true'] == 1) & (subset['epsilon_005'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_05': ((subset['selection_true'] == 1) & (subset['epsilon_05'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_1': ((subset['selection_true'] == 1) & (subset['epsilon_1'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_3': ((subset['selection_true'] == 1) & (subset['epsilon_3'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_5': ((subset['selection_true'] == 1) & (subset['epsilon_5'] == 1)).sum() / subset['selection_true'].sum(),
+                }
+                overlap.update({'percent': percent, 'bootstrap': boot})
+                results.append(overlap)
+        return pd.DataFrame(results)
+    else:
+        results = []
+        for percent, group in data.groupby('percent'):
+            if 0 < percent < 1:
+                subset = group[['selection_true', 'random', 'epsilon_005', 'epsilon_05', 'epsilon_1', 'epsilon_3', 'epsilon_5']]
+                overlap = {
+                    'overlap_random': ((subset['selection_true'] == 1) & (subset['random'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_005': ((subset['selection_true'] == 1) & (subset['epsilon_005'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_05': ((subset['selection_true'] == 1) & (subset['epsilon_05'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_1': ((subset['selection_true'] == 1) & (subset['epsilon_1'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_3': ((subset['selection_true'] == 1) & (subset['epsilon_3'] == 1)).sum() / subset['selection_true'].sum(),
+                    'overlap_5': ((subset['selection_true'] == 1) & (subset['epsilon_5'] == 1)).sum() / subset['selection_true'].sum(),
+                }
+                overlap.update({'percent': percent})
+                results.append(overlap)
+        return pd.DataFrame(results)
+
+def policy_profit(data, bootstrap=False):
+    if bootstrap:
+        results = []
+        data = data.melt(id_vars=['tau', 'percent', 'bootstrap'], value_vars=['selection_true', 'selection_tau', 'epsilon_005', 'epsilon_05', 'epsilon_1', 'epsilon_3', 'epsilon_5', 'random'], var_name='policy', value_name='selected')
+        for (percent, policy, boot), group in data.groupby(['percent', 'policy', 'bootstrap']):
+            profit = (group['tau'] * group['selected']).sum()
+            results.append({'percent': percent, 'policy': policy, 'bootstrap': boot, 'profit': profit})
+        return pd.DataFrame(results)
+    else:
+        results = []
+        data = data.melt(id_vars=['tau', 'percent'], value_vars=['selection_true', 'selection_tau', 'epsilon_005', 'epsilon_05', 'epsilon_1', 'epsilon_3', 'epsilon_5', 'random'], var_name='policy', value_name='selected')
+        for (percent, policy), group in data.groupby(['percent', 'policy']):
+            profit = (group['tau'] * group['selected']).sum()
+            results.append({'percent': percent, 'policy': policy, 'profit': profit})
+        return pd.DataFrame(results)
