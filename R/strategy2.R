@@ -76,6 +76,7 @@ bootstrap_strat_2 = function(bootstraps, CATE, CATE_estimates, percentage = seq(
     
       # Loop over each percentage level
       for (percent in percentage) {
+        set.seed(seeds[b])
         # Apply the protect function using the bootstrap sample
         collection <- protect_CATEs(percent = percent,
                             CATE = CATE,
