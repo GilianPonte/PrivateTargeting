@@ -44,20 +44,40 @@ def protect_selection(epsilon, selection, top, seed=1):
     else:
         protected_selection[np.random.choice(index_1, top, replace=False)] = 1
     return protected_selection
+
+def policy_profit(data, bootstrap=False):
+    if bootstrap:
+        profit = (data[['tau', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050', 'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percentage', 'bootstrap']]
+                  .melt(id_vars=['tau', 'percent', 'bootstrap'], var_name='name')
+                  .groupby(['percent', 'name', 'bootstrap'])
+                  .apply(lambda x: np.sum(x['tau'] * x['value']))
+                  .reset_index(name='profit')
+                  .groupby('percent')
+                  .agg(mean_profit=('profit', 'mean'),
+                       lower=('profit', lambda x: np.quantile(x, 0.025)),
+                       upper=('profit', lambda x: np.quantile(x, 0.975))))
+    else:
+        profit = (data[['tau', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050', 'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percentage']]
+                  .melt(id_vars=['tau', 'percentage'], var_name='name')
+                  .groupby(['percentage', 'name'])
+                  .apply(lambda x: np.sum(x['tau'] * x['value']))
+                  .reset_index(name='profit'))
+    return profit
+
     
-def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.05, 0.95, 0.05), epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
+def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0, 1, 0.2), epsilons=[0.05, 1], seed=1):
     np.random.seed(seed)
     seeds = np.random.choice(range(1, 1000000), size=bootstraps, replace=False)
     bootstrap_results = pd.DataFrame()
     for b in range(bootstraps):
         np.random.seed(seeds[b])
-        bootstrap_data = np.random.choice(CATE, size=len(CATE), replace=True)
         percentage_collection = pd.DataFrame()
         for percent in percentage:
             np.random.seed(seeds[b])
-            collection = protect_CATEs(percent, bootstrap_data, CATE_estimates, len(CATE_estimates), epsilons, seeds[b])
+            collection = protect_CATEs(percent, CATE_estimates, CATE_estimates, len(CATE_estimates), epsilons, seeds[b])
             collection['percent'] = percent
             percentage_collection = pd.concat([percentage_collection, collection], ignore_index=True)
         percentage_collection['bootstrap'] = b
         bootstrap_results = pd.concat([bootstrap_results, percentage_collection], ignore_index=True)
     return bootstrap_results
+
