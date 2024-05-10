@@ -30,7 +30,7 @@ def protect_selection(epsilon, selection, top, seed=1):
     P = np.zeros((2, 2))
     exp_eps = np.exp(epsilon)
     P[np.diag_indices_from(P)] = exp_eps / (2 - 1 + exp_eps)
-    P[~np.isfinite(P)] = 1 / (2 - 1 + exp_eps)
+    P[P == 0] = 1 / (2 - 1 + exp_eps)
     responses = np.zeros(len(selection))
     for i in range(len(selection)):
         np.random.seed(seed + i)
