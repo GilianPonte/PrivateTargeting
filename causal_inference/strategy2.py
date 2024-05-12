@@ -46,76 +46,90 @@ def protect_selection(epsilon, selection, top, seed=1):
     return protected_selection
 
 def policy_profit(data, bootstrap=False):
+    # Selecting required columns and performing pivot_longer equivalent operation
     if bootstrap:
-        profit = (data[['tau', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050', 'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percentage', 'bootstrap']]
-                  .melt(id_vars=['tau', 'percent', 'bootstrap'], var_name='name')
-                  .groupby(['percent', 'name', 'bootstrap'])
-                  .apply(lambda x: np.sum(x['tau'] * x['value']))
-                  .reset_index(name='profit')
-                  .groupby('percent')
-                  .agg(mean_profit=('profit', 'mean'),
-                       lower=('profit', lambda x: np.quantile(x, 0.025)),
-                       upper=('profit', lambda x: np.quantile(x, 0.975))))
+        data_filtered = data[['tau', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050',
+                              'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent', 'bootstrap']]
     else:
-        profit = (data[['tau', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050', 'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percentage']]
-                  .melt(id_vars=['tau', 'percentage'], var_name='name')
-                  .groupby(['percentage', 'name'])
-                  .apply(lambda x: np.sum(x['tau'] * x['value']))
-                  .reset_index(name='profit'))
+        data_filtered = data[['tau', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050',
+                              'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent']]
+    
+    # Melting the DataFrame to long format
+    data_long = data_filtered.melt(id_vars=['tau', 'percent'] + (['bootstrap'] if bootstrap else []),
+                                   value_vars=['selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050',
+                                               'epsilon_100', 'epsilon_300', 'epsilon_500', 'random'],
+                                   var_name='name', value_name='value')
+
+    # Grouping and summarizing to calculate profits
+    group_keys = ['percent', 'name'] + (['bootstrap'] if bootstrap else [])
+    profit = data_long.groupby(group_keys).apply(
+        lambda df: pd.Series({
+            'profit': (df['tau'] * df['value']).sum()
+        })
+    ).reset_index()
+
+    # Calculating mean profit, lower and upper quantiles if bootstrap is True
+    if bootstrap:
+        summary = profit.groupby(['percent', 'name']).agg({
+            'profit': ['mean', lambda x: np.quantile(x, 0.025), lambda x: np.quantile(x, 0.975)]
+        })
+        summary.columns = ['mean_profit', 'lower', 'upper']  # Renaming the columns
+        return summary.reset_index()
+    
     return profit
-import pandas as pd
-import numpy as np
 
 def policy_overlap(data, bootstrap=False):
     if bootstrap:
-        overlap = (data[['customer', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050', 'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent', 'bootstrap']]
-                   .groupby(['percent', 'bootstrap'])
-                   .filter(lambda x: (x['percent'] > 0).all() and (x['percent'] < 1).all())
-                   .assign(overlap_random=lambda x: x.groupby(['selection_true', 'random'])['random'].transform('size') /
-                                                  x['selection_true'].sum(),
-                           overlap_05=lambda x: x.groupby(['selection_true', 'epsilon_050'])['epsilon_050'].transform('size') /
-                                                x['selection_true'].sum(),
-                           overlap_005=lambda x: x.groupby(['selection_true', 'epsilon_005'])['epsilon_005'].transform('size') /
-                                                 x['selection_true'].sum(),
-                           overlap_1=lambda x: x.groupby(['selection_true', 'epsilon_100'])['epsilon_100'].transform('size') /
-                                               x['selection_true'].sum(),
-                           overlap_3=lambda x: x.groupby(['selection_true', 'epsilon_300'])['epsilon_300'].transform('size') /
-                                               x['selection_true'].sum(),
-                           overlap_5=lambda x: x.groupby(['selection_true', 'epsilon_500'])['epsilon_500'].transform('size') /
-                                               x['selection_true'].sum())
-                   .melt(id_vars=['percent', 'bootstrap'], var_name='name', value_name='value')
-                   .groupby(['percent', 'name'])
-                   .agg(mean_overlap=('value', 'mean'),
-                        lower=('value', lambda x: np.quantile(x, 0.025)),
-                        upper=('value', lambda x: np.quantile(x, 0.975))))
-
+        # Selecting the necessary columns, filtering, and computing overlaps
+        cols = ['customer', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050',
+                                               'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent', 'bootstrap']
+        data = data.loc[(data['percent'] > 0) & (data['percent'] < 1), cols]
+        grouped = data.groupby(['percent', 'bootstrap'])
     else:
-        overlap = (data[['customer', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050', 'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent']]
-                   .groupby('percent')
-                   .filter(lambda x: (x['percent'] > 0).all() and (x['percent'] < 1).all())
-                   .assign(overlap_random=lambda x: x.groupby(['selection_true', 'random'])['random'].transform('size') /
-                                                  x['selection_true'].sum(),
-                           overlap_05=lambda x: x.groupby(['selection_true', 'epsilon_050'])['epsilon_050'].transform('size') /
-                                                x['selection_true'].sum(),
-                           overlap_005=lambda x: x.groupby(['selection_true', 'epsilon_005'])['epsilon_005'].transform('size') /
-                                                 x['selection_true'].sum(),
-                           overlap_1=lambda x: x.groupby(['selection_true', 'epsilon_100'])['epsilon_100'].transform('size') /
-                                               x['selection_true'].sum(),
-                           overlap_3=lambda x: x.groupby(['selection_true', 'epsilon_300'])['epsilon_300'].transform('size') /
-                                               x['selection_true'].sum(),
-                           overlap_5=lambda x: x.groupby(['selection_true', 'epsilon_500'])['epsilon_500'].transform('size') /
-                                               x['selection_true'].sum())
-                   .groupby('percent')
-                   .agg(mean_overlap=('value', 'mean'),
-                        lower=('value', lambda x: np.quantile(x, 0.025)),
-                        upper=('value', lambda x: np.quantile(x, 0.975))))
+        # Selecting the necessary columns, filtering, and computing overlaps
+        cols = ['customer', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050',
+                                               'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent']
+        data = data.loc[(data['percent'] > 0) & (data['percent'] < 1), cols]
+        grouped = data.groupby('percent')
+    
+    def compute_overlap(group):
+        results = {}
+        true_values = group['selection_true'].values
+        for col in ['random', 'epsilon_005', 'epsilon_050',
+                                               'epsilon_100', 'epsilon_300', 'epsilon_500']:
+            pred_values = group[col].values
+            # Creating a contingency table and calculating overlap
+            contingency_table = pd.crosstab(true_values, pred_values)
+            try:
+                overlap = contingency_table.loc[1, 1] / true_values.sum()
+            except KeyError:
+                overlap = 0
+            results[f'overlap_{col}'] = overlap
+        return pd.Series(results)
+    
+    # Apply the compute_overlap function
+    overlaps = grouped.apply(compute_overlap).reset_index()
 
-    return overlap
+    if bootstrap:
+        # If bootstrap is True, pivot and calculate confidence intervals
+        overlaps = overlaps.melt(id_vars=['percent', 'bootstrap'], var_name='method', value_name='overlap')
+        summary = overlaps.groupby(['percent', 'method']).agg(
+            mean_overlap=('overlap', 'mean'),
+            lower=('overlap', lambda x: np.quantile(x, 0.025)),
+            upper=('overlap', lambda x: np.quantile(x, 0.975))
+        ).reset_index()
+    else:
+        summary = overlaps
+
+    return summary
+
     
 def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.05, 0.95, 0.05), epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
     np.random.seed(seed)
     seeds = np.random.choice(range(1, 1000000), size=bootstraps, replace=False)
     bootstrap_results = pd.DataFrame()
+    bootstrap_results_profit = pd.DataFrame()
+    bootstrap_results_overlap = pd.DataFrame()  
     for b in range(bootstraps):
         np.random.seed(seeds[b])
         percentage_collection = pd.DataFrame()
@@ -125,5 +139,10 @@ def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.0
             collection['percent'] = percent
             percentage_collection = pd.concat([percentage_collection, collection], ignore_index=True)
         percentage_collection['bootstrap'] = b
-        bootstrap_results = pd.concat([bootstrap_results, percentage_collection], ignore_index=True)
-    return bootstrap_results
+        profit = policy_profit(percentage_collection)
+        profit['bootstrap'] = b
+        overlap = policy_overlap(percentage_collection)
+        overlap['bootstrap'] = b
+        bootstrap_results_profit = pd.concat([bootstrap_results_profit, profit], ignore_index=True)
+        bootstrap_results_overlap = pd.concat([bootstrap_results_overlap, overlap], ignore_index=True)
+    return bootstrap_results_profit, bootstrap_results_overlap
