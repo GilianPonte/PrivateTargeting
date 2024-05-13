@@ -16,7 +16,7 @@ def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons=[0.05, 0.5, 1, 3, 5
     for epsilon in epsilons:
         protected_selection = protect_selection(epsilon, selection_tau, top)
         collection[f'epsilon_{epsilon:.2f}'.replace('.', '')] = protected_selection
-    
+
     collection['random'] = np.random.choice([0, 1], size=n, replace=True, p=[1-percent, percent])
     collection['percentage'] = percent
     collection['selection_true'] = selection_true
@@ -53,7 +53,7 @@ def policy_profit(data, bootstrap=False):
     else:
         data_filtered = data[['tau', 'selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050',
                               'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent']]
-    
+
     # Melting the DataFrame to long format
     data_long = data_filtered.melt(id_vars=['tau', 'percent'] + (['bootstrap'] if bootstrap else []),
                                    value_vars=['selection_true', 'selection_tau', 'epsilon_005', 'epsilon_050',
@@ -75,7 +75,7 @@ def policy_profit(data, bootstrap=False):
         })
         summary.columns = ['mean_profit', 'lower', 'upper']  # Renaming the columns
         return summary.reset_index()
-    
+
     return profit
 
 def policy_overlap(data, bootstrap=False):
@@ -91,7 +91,7 @@ def policy_overlap(data, bootstrap=False):
                                                'epsilon_100', 'epsilon_300', 'epsilon_500', 'random', 'percent']
         data = data.loc[(data['percent'] > 0) & (data['percent'] < 1), cols]
         grouped = data.groupby('percent')
-    
+
     def compute_overlap(group):
         results = {}
         true_values = group['selection_true'].values
@@ -106,7 +106,7 @@ def policy_overlap(data, bootstrap=False):
                 overlap = 0
             results[f'overlap_{col}'] = overlap
         return pd.Series(results)
-    
+
     # Apply the compute_overlap function
     overlaps = grouped.apply(compute_overlap).reset_index()
 
@@ -123,13 +123,13 @@ def policy_overlap(data, bootstrap=False):
 
     return summary
 
-    
+
 def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.05, 0.95, 0.05), epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
     np.random.seed(seed)
     seeds = np.random.choice(range(1, 1000000), size=bootstraps, replace=False)
     bootstrap_results = pd.DataFrame()
     bootstrap_results_profit = pd.DataFrame()
-    bootstrap_results_overlap = pd.DataFrame()  
+    bootstrap_results_overlap = pd.DataFrame()
     for b in range(bootstraps):
         np.random.seed(seeds[b])
         percentage_collection = pd.DataFrame()
