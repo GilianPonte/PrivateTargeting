@@ -10,34 +10,15 @@ import causal_inference
 from causal_inference import simulation_data
 from causal_inference import strategy1
 import time
-import secrets
 
-
-def generate_and_write_seeds(file_path, num_seeds, seed=None):
-    # If a seed is provided, use it for reproducibility
-    if seed is not None:
-        random.seed(seed)
-    
-    # Generate random seeds deterministically
-    seeds = [random.getrandbits(32) for _ in range(num_seeds)]
-
-    # Write seeds to a text file
-    with open(file_path, "w") as file:
-        for seed in seeds:
-            file.write(str(seed) + "\n")
-
-    print("Seeds have been written to", file_path)
-
-def read_file(file_path):
-    with open(file_path, "r") as file:
-        return [int(seed.strip()) for seed in file.readlines()]
-
-# Set the initial seed for reproducibility
-initial_seed = 422312
-
-# Generate and write seeds for seeds_data.txt
-generate_and_write_seeds("seeds_data.txt", 100, seed=initial_seed)
-generate_and_write_seeds("seeds_training.txt", 700, seed=initial_seed)
+try:
+    seeds_data = np.genfromtxt('/content/seeds_data.txt', delimiter=',', dtype = np.int64)
+except IOError:
+    print("Error: File not found or could not be read.")
+try:
+    seeds_training = np.genfromtxt('/content/seeds_training.txt', delimiter=',', dtype = np.int64)
+except IOError:
+    print("Error: File not found or could not be read.")
 
 # set time
 start_time = time.time()
@@ -51,7 +32,7 @@ seeds_training = read_file("seeds_training.txt")
 # simulation parameters
 iterations = 1
 results_list = []
-noise_multipliers = [0,8.7,3.4,1.12,0.845,0.567,0.3543] # Initialize lists to store results for each noise multiplier
+noise_multipliers = [0] # Initialize lists to store results for each noise multiplier ,8.7,3.4,1.12,0.845,0.567,0.3543
 
 for i in range(iterations):
   print("Iteration: {}".format(i, i))
@@ -91,8 +72,8 @@ for i in range(iterations):
                                                                   T = w,
                                                                   scaling = True,
                                                                   batch_size = 100,
-                                                                  epochs = 1,
-                                                                  max_epochs = 1,
+                                                                  epochs = 100,
+                                                                  max_epochs = 10,
                                                                   folds = 10,
                                                                   directory = directory,
                                                                   seed = seeds_training[combined_number])
@@ -106,8 +87,8 @@ for i in range(iterations):
             T=w,
             scaling=True,
             batch_size=100,
-            epochs=1,
-            max_epochs=1,
+            epochs=100,
+            max_epochs=10,
             fixed_model = True,
             directory=directory,  # Use the directory variable here
             noise_multiplier=noise_multiplier,
@@ -128,6 +109,8 @@ for i in range(iterations):
           'covariates' : x,
 
           })
+      
+      np.save(f"results_list_{noise_multiplier}", results_list)
 
       # Print or use the DataFrames as needed
       print(results_list)
