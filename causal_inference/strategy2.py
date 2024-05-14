@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons, seed = None):
-    np.random.seed(seed)
+def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons):
     top = int(n * percent)
     selection_true = np.zeros(n)
     selection_tau = np.zeros(n)
@@ -26,7 +25,7 @@ def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons, seed = None):
         collection['tau'] = CATE
     return collection
 
-def protect_selection(epsilon, selection, top, seed):
+def protect_selection(epsilon, selection, top):
     P = np.zeros((2, 2))
     exp_eps = np.exp(epsilon)
     P[np.diag_indices_from(P)] = exp_eps / (2 - 1 + exp_eps)
@@ -123,7 +122,7 @@ def policy_overlap(data, bootstrap=False):
     return summary
 
 
-def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.05, 0.95, 0.05), epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
+def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.05, 0.95, 0.05), epsilons=[0.05, 0.5, 1, 3, 5]):
     np.random.seed(seed)
     seeds = np.random.choice(range(1, 1000000), size=bootstraps, replace=False)
     bootstrap_results = pd.DataFrame()
