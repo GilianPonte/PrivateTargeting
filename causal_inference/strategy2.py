@@ -134,8 +134,7 @@ def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.0
         np.random.seed(seeds[b])
         percentage_collection = pd.DataFrame()
         for percent in percentage:
-            np.random.seed(seeds[b])
-            collection = protect_CATEs(percent, CATE_estimates, CATE_estimates, len(CATE_estimates), epsilons, seeds[b])
+            collection = protect_CATEs(percent, CATE_estimates, CATE_estimates, len(CATE_estimates), epsilons)
             collection['percent'] = percent
             percentage_collection = pd.concat([percentage_collection, collection], ignore_index=True)
         percentage_collection['bootstrap'] = b
@@ -146,4 +145,3 @@ def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.0
         bootstrap_results_profit = pd.concat([bootstrap_results_profit, profit], ignore_index=True)
         ootstrap_results_overlap = pd.concat([bootstrap_results_overlap, overlap], ignore_index=True)
     return bootstrap_results_profit, bootstrap_results_overlap
-
