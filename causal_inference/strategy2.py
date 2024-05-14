@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons=[0.05, 0.5, 1, 3, 5], seed=1):
+def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons, seed = None):
     np.random.seed(seed)
     top = int(n * percent)
     selection_true = np.zeros(n)
@@ -14,7 +14,8 @@ def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons=[0.05, 0.5, 1, 3, 5
 
     collection = pd.DataFrame({'customer': np.arange(1, n+1)})
     for epsilon in epsilons:
-        protected_selection = protect_selection(epsilon, selection_tau, top)
+        print("running epsilon: "+ str(epsilon))
+        protected_selection = protect_selection(epsilon, selection_tau, top, seed)
         collection[f'epsilon_{epsilon:.2f}'.replace('.', '')] = protected_selection
 
     collection['random'] = np.random.choice([0, 1], size=n, replace=True, p=[1-percent, percent])
@@ -25,15 +26,13 @@ def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons=[0.05, 0.5, 1, 3, 5
         collection['tau'] = CATE
     return collection
 
-def protect_selection(epsilon, selection, top, seed=1):
-    np.random.seed(seed)
+def protect_selection(epsilon, selection, top, seed):
     P = np.zeros((2, 2))
     exp_eps = np.exp(epsilon)
     P[np.diag_indices_from(P)] = exp_eps / (2 - 1 + exp_eps)
     P[P == 0] = 1 / (2 - 1 + exp_eps)
     responses = np.zeros(len(selection))
     for i in range(len(selection)):
-        np.random.seed(seed + i)
         responses[i] = np.random.choice([0, 1], p=P[int(selection[i]), :])
     protected_selection = np.zeros(len(selection))
     index_0 = np.where(responses == 0)[0]
@@ -131,6 +130,8 @@ def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.0
     bootstrap_results_profit = pd.DataFrame()
     bootstrap_results_overlap = pd.DataFrame()
     for b in range(bootstraps):
+        print(seeds[b])
+        print("running bootstrap: " + str(b))
         np.random.seed(seeds[b])
         percentage_collection = pd.DataFrame()
         for percent in percentage:
@@ -144,5 +145,6 @@ def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.0
         overlap = policy_overlap(percentage_collection)
         overlap['bootstrap'] = b
         bootstrap_results_profit = pd.concat([bootstrap_results_profit, profit], ignore_index=True)
-        bootstrap_results_overlap = pd.concat([bootstrap_results_overlap, overlap], ignore_index=True)
+        ootstrap_results_overlap = pd.concat([bootstrap_results_overlap, overlap], ignore_index=True)
     return bootstrap_results_profit, bootstrap_results_overlap
+
