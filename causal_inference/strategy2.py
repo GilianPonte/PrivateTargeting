@@ -14,7 +14,7 @@ def protect_CATEs(percent, CATE, CATE_estimates, n, epsilons):
     collection = pd.DataFrame({'customer': np.arange(1, n+1)})
     for epsilon in epsilons:
         print("running epsilon: "+ str(epsilon))
-        protected_selection = protect_selection(epsilon, selection_tau, top, seed)
+        protected_selection = protect_selection(epsilon, selection_tau, top)
         collection[f'epsilon_{epsilon:.2f}'.replace('.', '')] = protected_selection
 
     collection['random'] = np.random.choice([0, 1], size=n, replace=True, p=[1-percent, percent])
