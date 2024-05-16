@@ -107,7 +107,8 @@ for i in range(iterations):
           'data set' : i,
           'iteration' : a,
           'covariates' : x,
-
+          'y' : y,
+          'w' : w,
           })
       
       np.save(f"results_list_{noise_multiplier}", results_list)
