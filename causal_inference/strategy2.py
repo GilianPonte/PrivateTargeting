@@ -143,5 +143,5 @@ def bootstrap_strat_2(bootstraps, CATE, CATE_estimates, percentage=np.arange(0.0
         overlap = policy_overlap(percentage_collection)
         overlap['bootstrap'] = b
         bootstrap_results_profit = pd.concat([bootstrap_results_profit, profit], ignore_index=True)
-        ootstrap_results_overlap = pd.concat([bootstrap_results_overlap, overlap], ignore_index=True)
+        bootstrap_results_overlap = pd.concat([bootstrap_results_overlap, overlap], ignore_index=True)
     return bootstrap_results_profit, bootstrap_results_overlap
