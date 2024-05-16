@@ -251,9 +251,9 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     tf.keras.utils.set_random_seed(seed)
 
     # Check if batch size divides the data evenly
-    if len(X) % batch_size != 0:
-        divisors = [i for i in range(1, int(math.sqrt(len(X))) + 1) if len(X) % i == 0]
-        divisors += [len(X) // i for i in divisors if len(X) // i != i]
+    if (len(X)/2) % batch_size != 0:
+        divisors = [i for i in range(1, int(math.sqrt((len(X)/2))) + 1) if (len(X)/2) % i == 0]
+        divisors += [(len(X)/2) // i for i in divisors if (len(X)/2) // i != i]
         divisors.sort()
         raise ValueError("The batch size you have specified does not divide the data into a whole number.\nPlease select one of the following possible batch sizes: {}".format(np.round(divisors)))
 
