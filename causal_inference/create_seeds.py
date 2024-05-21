@@ -1,27 +1,31 @@
 import random
 import numpy as np
-def generate_and_write_seeds(file_path, num_seeds, seed=None):
-    # If a seed is provided, use it for reproducibility
-    if seed is not None:
-        random.seed(seed)
 
-    # Generate random seeds deterministically
-    seeds = [random.getrandbits(32) for _ in range(num_seeds)]
+
+# Set the initial seed for reproducibility
+INITIAL_SEED = 422312
+
+
+def generate_and_write_seeds(file_path, num_seeds, seed=INITIAL_SEED):
+    rnd = random.Random(seed)
 
     # Write seeds to a text file
     with open(file_path, "w") as file:
-        for seed in seeds:
-            file.write(str(seed) + "\n")
+        for _ in range(num_seeds):
+            file.write(str(rnd.getrandbits(32)) + "\n")
 
     print("Seeds have been written to", file_path)
+
 
 def read_file(file_path):
     with open(file_path, "r") as file:
         return [int(seed.strip()) for seed in file.readlines()]
 
-# Set the initial seed for reproducibility
-initial_seed = 422312
+def main_seeds():
+    # Generate and write seeds for seeds_data.txt
+    generate_and_write_seeds("seeds_data.txt", 100, seed=INITIAL_SEED)
+    generate_and_write_seeds("seeds_training.txt", 700, seed=INITIAL_SEED)
 
-# Generate and write seeds for seeds_data.txt
-generate_and_write_seeds("seeds_data.txt", 100, seed=initial_seed)
-generate_and_write_seeds("seeds_training.txt", 700, seed=initial_seed)
+
+if __name__ == '__main__':
+    main_seeds()

@@ -1,8 +1,8 @@
-import tensorflow_privacy
-from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
-import keras_tuner
+#import tensorflow_privacy
+#from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
+#import keras_tuner
 
-def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner", seed = None):
+def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10, folds = 5, directory = "tuner"):
   """
     Causal Neural Network (CNN) algorithm for estimating average treatment effects.
 
@@ -35,12 +35,6 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
   from sklearn.preprocessing import MinMaxScaler
   import numpy as np
 
-  # set seeds
-  random.seed(seed)
-  np.random.seed(seed)
-  tf.random.set_seed(seed)
-  tf.keras.utils.set_random_seed(seed)
-
   # callback settings for early stopping and saving
   callback = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping
   callback1 = tf.keras.callbacks.EarlyStopping(monitor= 'val_loss', patience = 5, mode = "min") # early stopping
@@ -58,7 +52,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
     X = scaler0.transform(X)
 
   ## Add leaky-relu so we can use it as a string
-  get_custom_objects().update({'leaky-relu': Activation(LeakyReLU(alpha=0.2))})
+  get_custom_objects().update({'leaky_relu': Activation(LeakyReLU(alpha=0.2))})
 
   def build_model(hp):
         model = keras.Sequential()
@@ -69,7 +63,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
                 layers.Dense(
                     # Tune number of units separately.
                     units=hp.Choice(f"units_{i}", [8, 16, 32, 64, 256, 512]),
-                    activation=hp.Choice("activation", ["leaky-relu", "relu"]),
+                    activation=hp.Choice("activation", ["leaky_relu", "relu"]),
                 )
             )
         model.add(layers.Dense(1, activation="linear"))
@@ -88,8 +82,10 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
   T = np.array(pd.DataFrame(T).reindex(idx))
 
   # save models
-  checkpoint_filepath_mx = f"{directory}/m_x.hdf5"
-  checkpoint_filepath_taux = f"{directory}/tau_x.hdf5"
+  #checkpoint_filepath_mx = f"{directory}/m_x.hdf5"
+  checkpoint_filepath_mx = f"{directory}/m_x.keras"
+  #checkpoint_filepath_taux = f"{directory}/tau_x.hdf5"
+  checkpoint_filepath_taux = f"{directory}/tau_x.keras"
   mx_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_mx, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
   tau_hat_callbacks = [callback, tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath_taux, save_weights_only=False, monitor='val_loss', mode='min', save_freq="epoch", save_best_only=True),]
 
@@ -106,7 +102,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
     overwrite=True,
     directory=directory,
     project_name="yhat",
-    seed = seed,)
+  )#seed = random.randint(1, 10000))
   tuner.search(X, Y, epochs = epochs, validation_split=0.25, verbose = 0, callbacks = [callback])
 
   # Get the optimal hyperparameters
@@ -117,10 +113,10 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
 
   for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
     # set random seeds
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    random.seed(seed)
-    tf.keras.utils.set_random_seed(seed)
+    # np.random.seed(seed)
+    # tf.random.set_seed(seed)
+    # random.seed(seed)
+    # tf.keras.utils.set_random_seed(seed)
     
     #print("training model for m(x)")
     model_m_x = tuner.hypermodel.build(best_hps)
@@ -168,7 +164,7 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
     overwrite=True,
     directory=directory,
     project_name="tau_hat",
-    seed = seed,)
+    )#seed = random.randint(1, 10000))
   tuner1.search(X, pseudo_outcome, epochs=epochs, validation_split=0.25, verbose = 0, callbacks = [callback1])
   best_hps_tau =tuner1.get_best_hyperparameters()[0]
   print("the optimal architecture is: " + str(best_hps_tau.values))
@@ -177,10 +173,10 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
   print("training for tau hat")
   for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
     # set random seeds
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    random.seed(seed)
-    tf.keras.utils.set_random_seed(seed)
+    # np.random.seed(seed)
+    # tf.random.set_seed(seed)
+    # random.seed(seed)
+    # tf.keras.utils.set_random_seed(seed)
       
     tau_hat = tuner1.hypermodel.build(best_hps_tau)
     history_tau = tau_hat.fit(
@@ -203,11 +199,11 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
   print("ATE = " + str(np.round(np.mean(average_treatment_effect), 4)) + ", std(ATE) = " + str(np.round(np.std(average_treatment_effect), 3)))
   return average_treatment_effect, CATE_estimates, tau_hat
 
-import tensorflow_privacy
-from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
+#import tensorflow_privacy
+#from tensorflow_privacy.privacy.optimizers.dp_optimizer_keras import DPKerasAdamOptimizer
 import keras_tuner
 
-def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, directory="tuner", fixed_model = False, noise_multiplier=1, seed = 1):
+def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, directory="tuner", fixed_model = False, noise_multiplier=1):
     """
     Private Causal Neural Network (PCNN) algorithm for estimating average treatment effects.
 
@@ -245,10 +241,10 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     import keras_tuner
     
     # set random seeds
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    random.seed(seed)
-    tf.keras.utils.set_random_seed(seed)
+    # np.random.seed(seed)
+    # tf.random.set_seed(seed)
+    # random.seed(seed)
+    # tf.keras.utils.set_random_seed(seed)
 
     # Check if batch size divides the data evenly
     if (len(X)/2) % batch_size != 0:
@@ -357,7 +353,10 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     e_x_hat = []  # collect all e_x_hat for print
     
     print("hyperparameter optimization for yhat")
-    tuner = keras_tuner.Hyperband(hypermodel=build_model, objective="val_loss", max_epochs=max_epochs, overwrite=True, directory=directory, project_name="yhat",seed=seed,) # random search is at least as slow..
+    tuner = keras_tuner.Hyperband(hypermodel=build_model, objective="val_loss", max_epochs=max_epochs, overwrite=True,
+                                  directory=directory, project_name="yhat",
+                                  )#seed = random.randint(1, 10000))
+    # random search is at least as slow..
    
     tuner.search(X, Y, epochs=epochs, validation_split=0.25, verbose=0, callbacks=[mx_callbacks])
     # Get the optimal hyperparameters
@@ -368,10 +367,10 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
 
     for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
       # set random seeds
-      np.random.seed(seed)
-      tf.random.set_seed(seed)
-      random.seed(seed)
-      tf.keras.utils.set_random_seed(seed)
+      # np.random.seed(seed)
+      # tf.random.set_seed(seed)
+      # random.seed(seed)
+      # tf.keras.utils.set_random_seed(seed)
       
       # training model for m(x)
       model_m_x = tuner.hypermodel.build(best_hps)
@@ -416,10 +415,10 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
     print("training for tau hat")
     for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
       # set random seeds
-      np.random.seed(seed)
-      tf.random.set_seed(seed)
-      random.seed(seed)
-      tf.keras.utils.set_random_seed(seed)
+      # np.random.seed(seed)
+      # tf.random.set_seed(seed)
+      # random.seed(seed)
+      # tf.keras.utils.set_random_seed(seed)
    
       tau_hat = generate_fixed_architecture(X) # an alternative is to fix the values of hyperparameters to some reasonable defaults and forgo hyperparameter tuning altogether (Ponomareva et al. 2023)
       if fixed_model == False:
