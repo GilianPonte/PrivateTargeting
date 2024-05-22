@@ -437,7 +437,7 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
       if fixed_model == False:
         tau_hat = tuner.hypermodel.build(best_hps)
         tau_hat.build(input_shape=(None, X.shape[1]))
-        tau_hat.load_weights(checkpoint_filepath_taux)
+      tau_hat.load_weights(checkpoint_filepath_taux)
       CATE = tau_hat.predict(x=X[test_idx], verbose=0).reshape(len(X[test_idx]))
       print(f"Fold {fold}: mean(tau_hat) = {np.round(np.mean(CATE), 2):.2f}, sd(tau_hat) = {np.round(np.std(CATE), 3):.3f}")
 
