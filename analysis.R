@@ -56,8 +56,7 @@ for (i in 1:100){
 }
 ate_collect
 
-#write.csv(rboost,"C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/rboost/rboost.csv", row.names = F)
-rboost = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/rboost/rboost.csv")
+rboost = read.csv("rboost.csv")
 mean(rboost$V1)
 
 # obtain CATE
@@ -79,8 +78,7 @@ for (i in 1:100){
 mean(ate_collect)
 sd(ate_collect)
 rlasso = ate_collect
-#write.csv(rlasso,"C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/rlasso/rlasso.csv", row.names = F)
-rlasso = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/rlasso/rlasso.csv")
+rlasso = read.csv("rlasso.csv")
 mean(rlasso$V1)
 
 # obtain CATE
@@ -105,8 +103,7 @@ for (i in 1:100){
   print(mean(CATE_causalforest_sim1$predictions))
   ate_collect_causal_forest = rbind(ate_collect_causal_forest, mean(CATE_causalforest_sim1$predictions))
 }
-#write.csv(ate_collect_causal_forest, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/causal forest/ate_collect_causal_forest.csv", row.names = F) 
-ate_collect_causal_forest = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/causal forest/ate_collect_causal_forest.csv")
+ate_collect_causal_forest = read.csv("ate_collect_causal_forest.csv")
 mean(ate_collect_causal_forest$V1)
 
 # obtain CATE
@@ -122,14 +119,14 @@ cate_causalforest <- predict(causalforest, newdata = data$x, type = "vector")
 hist(cate_causalforest$predictions)
 
 ## causal network results
-ate_collect_nn_logit = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/causal network/ATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)
+ate_collect_nn_logit = read.csv("ATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)
 causal_network_logit = ate_collect_nn_logit$V1
 hist(causal_network_logit)
 mean(causal_network_logit)
 sd(causal_network_logit)
 
 # CATE from causalnetwork
-cate_causalnetwork_sim1 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/causal network/CATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)
+cate_causalnetwork_sim1 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)
 
 # ate
 boxplots = rbind(data.frame(CATE = rlasso$V1, method = "Rlasso"),data.frame(CATE = rboost$V1, method = "Rboost"), data.frame(CATE = ate_collect_causal_forest$V1,method = "Causal forest"), data.frame(CATE = causal_network_logit,method = "CNN"))
@@ -229,14 +226,14 @@ uplift_gather %>% filter(name != "random") %>%
   scale_color_manual(values = c("purple", "red", "blue", "green", "grey")) 
 
 # sim 1: first privacy protection -----------------------------------------
-causal_network_logit = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/causal network/ATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)$V1
-eps_sim001 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/ATE_sim1_epochs_100_batch_100_folds_5_square_001.csv", header = F)
-eps_sim005 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/ATE_sim1_epochs_100_batch_100_folds_5_square_005.csv", header = F)
-eps_sim05 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/ATE_sim1_epochs_100_batch_100_folds_5_square_05.csv", header = F)
-eps_sim1 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/ATE_sim1_epochs_100_batch_100_folds_5_square_1.csv", header = F)
-eps_sim3 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/ATE_sim1_epochs_100_batch_100_folds_5_square_3.csv", header = F)
-eps_sim13 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/ATE_sim1_epochs_100_batch_100_folds_5_square_13.csv", header = F)
-eps_sim50 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/ATE_sim1_epochs_100_batch_100_folds_5_square_50.csv", header = F)
+causal_network_logit = read.csv("ATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)$V1
+eps_sim001 = read.csv("ATE_sim1_epochs_100_batch_100_folds_5_square_001.csv", header = F)
+eps_sim005 = read.csv("ATE_sim1_epochs_100_batch_100_folds_5_square_005.csv", header = F)
+eps_sim05 = read.csv("ATE_sim1_epochs_100_batch_100_folds_5_square_05.csv", header = F)
+eps_sim1 = read.csv("ATE_sim1_epochs_100_batch_100_folds_5_square_1.csv", header = F)
+eps_sim3 = read.csv("ATE_sim1_epochs_100_batch_100_folds_5_square_3.csv", header = F)
+eps_sim13 = read.csv("ATE_sim1_epochs_100_batch_100_folds_5_square_13.csv", header = F)
+eps_sim50 = read.csv("ATE_sim1_epochs_100_batch_100_folds_5_square_50.csv", header = F)
 
 epsilons_sim_1 = c(0.01, 0.05, 0.5, 1, 3, 13, 50)
 eps_sim1 = data.frame(CATE_001 = eps_sim001$V1, CATE_005 = eps_sim005$V1, CATE_05 = eps_sim05$V1, CATE_1 = eps_sim1$V1, CATE_3 = eps_sim3$V1, CATE_13 = eps_sim13$V1, CATE_50 = eps_sim50$V1, causal_nn = causal_network_logit) %>% pivot_longer(cols = c(CATE_001,CATE_005,CATE_05,CATE_1,CATE_3,CATE_13, CATE_50, causal_nn))
@@ -262,14 +259,14 @@ eps_sim1$eps = factor(eps_sim1$eps, levels = c("0.01", "0.05", "0.5", "1", "3", 
 eps_sim1 %>% ggplot(aes(x= as.factor(eps), y= CATE)) + geom_boxplot() + theme_minimal(base_size = 13) + geom_hline(yintercept = mean(data$tau), col = 'red') + theme(axis.text.x = element_text(size = 13, color = "black"),axis.text.y = element_text(size = 13, color = "black")) + ylab("E[tau(X)]") + xlab("epsilon")
 
 ## CATE with epsilons
-cate_causalnetwork_sim1 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/causal network/CATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)
-CATE_eps_sim001 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/CATE_sim1_epochs_100_batch_100_folds_5_square_001.csv", header = F)
-CATE_eps_sim005 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/CATE_sim1_epochs_100_batch_100_folds_5_square_005.csv", header = F)
-CATE_eps_sim05 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/CATE_sim1_epochs_100_batch_100_folds_5_square_05.csv", header = F)
-CATE_eps_sim1 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/CATE_sim1_epochs_100_batch_100_folds_5_square_1.csv", header = F)
-CATE_eps_sim3 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/CATE_sim1_epochs_100_batch_100_folds_5_square_3.csv", header = F)
-CATE_eps_sim13 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/CATE_sim1_epochs_100_batch_100_folds_5_square_13.csv", header = F)
-CATE_eps_sim50 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/epsilon/CATE_sim1_epochs_100_batch_100_folds_5_square_50.csv", header = F)
+cate_causalnetwork_sim1 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)
+CATE_eps_sim001 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square_001.csv", header = F)
+CATE_eps_sim005 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square_005.csv", header = F)
+CATE_eps_sim05 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square_05.csv", header = F)
+CATE_eps_sim1 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square_1.csv", header = F)
+CATE_eps_sim3 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square_3.csv", header = F)
+CATE_eps_sim13 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square_13.csv", header = F)
+CATE_eps_sim50 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square_50.csv", header = F)
 
 CATE_eps_sim1 = data.frame(CATE_001 = CATE_eps_sim001$V1, CATE_005 = CATE_eps_sim005$V1, CATE_05 = CATE_eps_sim05$V1, CATE_1 = CATE_eps_sim1$V1, CATE_3 = CATE_eps_sim3$V1, CATE_13 = CATE_eps_sim13$V1,
                            CATE_50 = CATE_eps_sim50$V1, CATE = cate_causalnetwork_sim1$V1,real = data$tau, customer= 1:1000) 
@@ -368,7 +365,7 @@ sim1_sorting = uplift_gather %>% ggplot(aes(x = percentage*100, y = profit, colo
 sim1_sorting
 
 # sim 1: second privacy strategy --------------------------------------------------
-cate_causalnetwork_sim1 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 1/causal network/CATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)
+cate_causalnetwork_sim1 = read.csv("CATE_sim1_epochs_100_batch_100_folds_5_square.csv", header = F)
 second = data.frame(tau = data$tau, causal_neural_tau = cate_causalnetwork_sim1$V1)
 results_in_sim1 = c()
 results_in_sim1_uplift = c()
@@ -762,10 +759,10 @@ sd(data2$tau)
 hist(data2$tau)
 mean(data2$y)
 
-#write.csv(data2$x, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/x_toy.csv", row.names = F)
-#write.csv(data2$w, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/w_toy.csv", row.names = F)
-#write.csv(data2$y, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/y_toy.csv", row.names = F)
-#write.csv(data2$tau, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/tau_toy.csv") # true tau = 2.786143
+#write.csv(data2$x, "x_toy.csv", row.names = F)
+#write.csv(data2$w, "w_toy.csv", row.names = F)
+#write.csv(data2$y, "y_toy.csv", row.names = F)
+#write.csv(data2$tau, "tau_toy.csv") # true tau = 2.786143
 
 mean(data2$tau) # true tau = 11.12626
 hist(data2$tau)
@@ -784,8 +781,8 @@ for (i in 1:100){
 rlasso = ate_collect
 mean(rlasso)
 
-#write.csv(rlasso,"C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/rlasso/rlasso.csv", row.names = F)
-rlasso = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/rlasso/rlasso.csv")
+#write.csv(rlasso,"rlasso/rlasso.csv", row.names = F)
+rlasso = read.csv("rlasso/rlasso.csv")
 mean(rlasso$V1)
 sd(rlasso$V1)
 
@@ -811,8 +808,8 @@ rboost = ate_collect
 mean(rboost)
 sd(rboost)
 
-#write.csv(rboost, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/rboost/rboost_ate_collect_simulation_2.csv", row.names = F)
-ate_collect_rboost = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/rboost/rboost_ate_collect_simulation_2.csv")
+#write.csv(rboost, "rboost/rboost_ate_collect_simulation_2.csv", row.names = F)
+ate_collect_rboost = read.csv("rboost/rboost_ate_collect_simulation_2.csv")
 hist(ate_collect_rboost$V1)
 mean(ate_collect_rboost$V1)
 sd(ate_collect_rboost$V1)
@@ -837,8 +834,8 @@ for (i in 91:100){
   print(mean(CATE_causalforest_sim2$predictions))
 }
 mean(ate_collect_causal_forest)
-#write.csv(ate_collect_causal_forest_sim2, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/causal forest/ate_collect_causal_forest_10.csv", row.names = F) 
-ate_collect_causal_forest_sim2 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/causal forest/ate_collect_causal_forest_10.csv")
+#write.csv(ate_collect_causal_forest_sim2, "causal forest/ate_collect_causal_forest_10.csv", row.names = F) 
+ate_collect_causal_forest_sim2 = read.csv("causal forest/ate_collect_causal_forest_10.csv")
 mean(ate_collect_causal_forest_sim2$V1)
 hist(ate_collect_causal_forest_sim2$V1)
 
@@ -855,12 +852,12 @@ cate_causalforest <- predict(causalforest, newdata = data2$x, type = "vector")
 hist(cate_causalforest$predictions)
 
 ## causal network
-causal_net_sim2 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/causal network/ATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
+causal_net_sim2 = read.csv("causal network/ATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
 hist(causal_net_sim2$V1)
 mean(causal_net_sim2$V1)
 sd(causal_net_sim2$V1)
 
-cate_causalnetwork = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/causal network/CATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
+cate_causalnetwork = read.csv("causal network/CATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
 
 boxplots = rbind(data.frame(CATE = rlasso$V1, method = "Rlasso"), 
                  data.frame(CATE = ate_collect_causal_forest_sim2$V1 ,method = "Causal forest"), 
@@ -902,13 +899,13 @@ simulation1_ %>% ggplot(aes(x = CATE, y = method, group = as.factor(method))) + 
         legend.text=element_text(size=14, color = 'black')) + ylab("")+ xlab("")  + coord_flip()
 
 ## simulation with epsilons
-eps_sim001 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_001.csv", header = F)
-eps_sim005 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_005.csv", header = F)
-eps_sim05 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_05.csv", header = F)
-eps_sim1_2 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_1.csv", header = F)
-eps_sim3 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_3.csv", header = F)
-eps_sim13 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_13.csv", header = F)
-eps_sim50 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_50.csv", header = F)
+eps_sim001 = read.csv("epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_001.csv", header = F)
+eps_sim005 = read.csv("epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_005.csv", header = F)
+eps_sim05 = read.csv("epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_05.csv", header = F)
+eps_sim1_2 = read.csv("epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_1.csv", header = F)
+eps_sim3 = read.csv("epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_3.csv", header = F)
+eps_sim13 = read.csv("epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_13.csv", header = F)
+eps_sim50 = read.csv("epsilon/ATE_sim2_epochs_100_batch_100_folds_5_square_50.csv", header = F)
 
 epsilons_sim_1 = c(0.01, 0.05, 0.5, 1, 3, 13, 50)
 eps_sim2 = data.frame(CATE_001 = eps_sim001$V1, CATE_005 = eps_sim005$V1, CATE_05 = eps_sim05$V1, CATE_1 = eps_sim1_2$V1, CATE_3 = eps_sim3$V1, CATE_13 = eps_sim13$V1, CATE_50 = eps_sim50$V1, causal_nn = causal_net_sim2$V1) %>% pivot_longer(cols = c(CATE_001,CATE_005,CATE_05,CATE_1,CATE_3,CATE_13,CATE_50, causal_nn))
@@ -933,14 +930,14 @@ eps_sim2$eps = factor(eps_sim2$eps, levels = c("0.01", "0.05", "0.5", "1", "3", 
 eps_sim2 %>% ggplot(aes(x= as.factor(eps), y= CATE)) + geom_boxplot() + theme_minimal(base_size = 13) + geom_hline(yintercept = 11.12626, col = 'red') + theme(axis.text.x = element_text(size = 13, color = "black"),axis.text.y = element_text(size = 13, color = "black")) + ylab("E[tau(X)]") + xlab("epsilon")
 
 ## CATE with epsilons
-cate_causalnetwork = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/causal network/CATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
-CATE_eps_sim001 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_001.csv", header = F)
-CATE_eps_sim005 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_005.csv", header = F)
-CATE_eps_sim05 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_05.csv", header = F)
-CATE_eps_sim1 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_1.csv", header = F)
-CATE_eps_sim3 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_3.csv", header = F)
-CATE_eps_sim13 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_13.csv", header = F)
-CATE_eps_sim50 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_50.csv", header = F)
+cate_causalnetwork = read.csv("causal network/CATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
+CATE_eps_sim001 = read.csv("epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_001.csv", header = F)
+CATE_eps_sim005 = read.csv("epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_005.csv", header = F)
+CATE_eps_sim05 = read.csv("epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_05.csv", header = F)
+CATE_eps_sim1 = read.csv("epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_1.csv", header = F)
+CATE_eps_sim3 = read.csv("epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_3.csv", header = F)
+CATE_eps_sim13 = read.csv("epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_13.csv", header = F)
+CATE_eps_sim50 = read.csv("epsilon/CATE_sim2_epochs_100_batch_100_folds_5_square_50.csv", header = F)
 
 CATE_eps_sim2 = data.frame(CATE_001 = CATE_eps_sim001$V1, CATE_005 = CATE_eps_sim005$V1, CATE_05 = CATE_eps_sim05$V1, CATE_1 = CATE_eps_sim1$V1, CATE_3 = CATE_eps_sim3$V1, CATE_13 = CATE_eps_sim13$V1,CATE_50 = CATE_eps_sim50$V1, CATE = cate_causalnetwork$V1, real = data2$tau, customer= 1:100000) 
 
@@ -1198,7 +1195,7 @@ grid.arrange(uplift_plot_sim1, uplift_plot_sim2, nrow = 1)
 
 
 # sim 2: second privacy strategy -------------------------------------------
-cate_causalnetwork = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/causal network/CATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
+cate_causalnetwork = read.csv("causal network/CATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
 second_1 = data.frame(tau = data2$tau, causal_neural_tau = cate_causalnetwork$V1)
 results_in_sim2 = c()
 results_in_sim2_uplift = c()
@@ -1359,7 +1356,7 @@ ggarrange(sim1_second, sim2_second, ncol =2, common.legend = TRUE, legend="botto
 
 
 # sim 2: third strategy ---------------------------------------------------
-cate_causalnetwork = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/simulation/simulation study 2/causal network/CATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
+cate_causalnetwork = read.csv("causal network/CATE_sim2_epochs_100_batch_100_folds_5.csv", header = F)
 second_3 = data.frame(tau = data2$tau, causal_neural_tau = cate_causalnetwork$V1)
 results_in_sim2 = c()
 results_in_sim2_uplift = c()
@@ -1524,7 +1521,7 @@ uplift_plot_sim2
 ggarrange(uplift_plot_sim1, uplift_plot_sim2, ncol =2, common.legend = TRUE, legend="bottom")
 
 # first field experiment ---------------------------------------------------------------
-data = readr::read_rds("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/features_privacy_billa_plus.RDS")
+data = readr::read_rds("features_privacy_.RDS")
 summary(data)
 
 #old data
@@ -1544,7 +1541,7 @@ descr(data, stats = c("min","Q1", "mean","Q3","max"), transpose = T, style = 'rm
 
 summary(lm("RESP_REVENUE ~ .", data = data[,c(1:11,13:42,44:45,47:55,57:62,64:86,88:89,91:96,98:120,122)]))
 
-#write.csv(data, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/features_roughclean_privacy_billa_plus.csv")
+#write.csv(data, "features_roughclean_privacy_.csv")
 
 ## For the field experiment, we want to target the easter mailing (to do with privacy).
 # 10% control group rule of thumb
@@ -1613,7 +1610,7 @@ predictions_control_rf = predict(model_control_rf, data_covariates)
 
 CATE_rf = predictions_treated_rf - predictions_control_rf
 #write.csv(CATE_rf, "CATE_rf.csv", row.names = F)
-CATE_rf = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_rf.csv")
+CATE_rf = read.csv("CATE_rf.csv")
 mean(CATE_rf$x)
 sd(CATE_rf$x)/nrow(data_covariates)
 
@@ -1637,8 +1634,8 @@ cvfit <- cv.glmnet(as.matrix(x), y)
 prediction_glmnet_control = as.data.frame(predict(cvfit, newx = as.matrix(data_covariates[,1:120]), s = "lambda.min"))
 
 CATE_glmnet = prediction_glmnet_treated$lambda.min - prediction_glmnet_control$lambda.min
-#write.csv(CATE_glmnet, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_glmnet.csv", row.names = F)
-CATE_glmnet = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_glmnet.csv")
+#write.csv(CATE_glmnet, "CATE_glmnet.csv", row.names = F)
+CATE_glmnet = read.csv("CATE_glmnet.csv")
 mean(CATE_glmnet$x)
 sd(CATE_glmnet$x)
 
@@ -1724,12 +1721,12 @@ causalforest <- grf::causal_forest(
 CATE_causalforest <- predict(causalforest, newdata = X, type = "vector")
 
 #write.csv(CATE_causalforest$predictions, "CATE_causal_forest.csv", row.names = F)
-CATE_causalforest = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_causal_forest.csv")
+CATE_causalforest = read.csv("CATE_causal_forest.csv")
 mean(CATE_causalforest$x)
 
 # cate from causal network
-CATE_causal_network = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE.csv", header = F)
-data$CATE_causal_network = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE.csv", header = F)
+CATE_causal_network = read.csv("networks/CATE.csv", header = F)
+data$CATE_causal_network = read.csv("networks/CATE.csv", header = F)
 
 mean(CATE_causal_network$V1)
 sd(CATE_causal_network$V1)
@@ -1743,8 +1740,8 @@ write.csv(CATE_boost_predictions, "CATE_rboost.csv", row.names = F)
 # r-learner (rlasso)
 CATE_lasso = rlearner::rlasso(x = as.matrix(X), w = as.matrix(W), y = as.matrix(Y), k_folds = 5)
 CATE_lasso_predictions = predict(CATE_lasso, as.matrix(X))
-#write.csv(CATE_lasso_predictions, "C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_rlasso.csv", row.names = F)
-CATE_lasso_predictions = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_rlasso.csv")
+#write.csv(CATE_lasso_predictions, "CATE_rlasso.csv", row.names = F)
+CATE_lasso_predictions = read.csv("CATE_rlasso.csv")
 CATE_lasso_predictions = as.numeric(CATE_lasso_predictions$V1)
 mean(CATE_lasso_predictions)
 sd(CATE_lasso_predictions)
@@ -1784,26 +1781,26 @@ means <- aggregate(CATE ~  method, method_cate, mean)
 cates %>% ggplot(aes(x = method, y = CATE)) + geom_boxplot() +  geom_text_repel(data = means, box.padding = 1.5, size  = 4.5, aes(label = round(CATE,2))) + facet_wrap(~estimator, scales = "free")+ theme_bw(base_size = 13) + theme(text = element_text(size = 13), axis.text = element_text(size = 13, color = "black"), axis.text.x = element_text(angle = 0, size = 13), strip.text.x = element_text(size = 13)) + ylab("estimated tau(X) (in euros)") + xlab("")
 
 # with epsilon ------------------------------------------------------------
-#CATE_0_02 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_0.02.csv", header = F) 
-data$CATE_0_05 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_0_05_tuning_1.csv", header = F)$V1
-#CATE_0_1 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_0.1.csv", header = F) 
-data$CATE_0_5 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_0_5_tuning_1.csv", header = F)$V1
-#CATE_0_75 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE_0.75.csv", header = F)
-#CATE_1 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE_1.0.csv", header = F) 
-#CATE_3 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE_3.0.csv", header = F) 
-data$CATE_5 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_5_tuning.csv", header = F)$V1
-#CATE_7 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE_7.0.csv", header = F)
-#CATE_9 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE_9.0.csv", header = F)
-#CATE_13 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE_12.97.csv", header = F)
-data$CATE_50 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_50_tuning_1.csv", header = F)$V1
-#CATE_150 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE_149.65.csv", header = F)
-data$CATE_500 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_500_tuning.csv", header = F)$V1
-data$CATE_5000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_5000_tuning_1.csv", header = F)$V1
-data$CATE_50000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_50000_tuning.csv", header = F)$V1
-data$CATE_100000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_100000_tuning.csv", header = F)$V1
-data$CATE_500000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_500000_tuning_1.csv", header = F)$V1
+#CATE_0_02 = read.csv("CATE_0.02.csv", header = F) 
+data$CATE_0_05 = read.csv("CATE_estimates_0_05_tuning_1.csv", header = F)$V1
+#CATE_0_1 = read.csv("CATE_0.1.csv", header = F) 
+data$CATE_0_5 = read.csv("CATE_estimates_0_5_tuning_1.csv", header = F)$V1
+#CATE_0_75 = read.csv("networks/CATE_0.75.csv", header = F)
+#CATE_1 = read.csv("networks/CATE_1.0.csv", header = F) 
+#CATE_3 = read.csv("networks/CATE_3.0.csv", header = F) 
+data$CATE_5 = read.csv("CATE_estimates_5_tuning.csv", header = F)$V1
+#CATE_7 = read.csv("networks/CATE_7.0.csv", header = F)
+#CATE_9 = read.csv("networks/CATE_9.0.csv", header = F)
+#CATE_13 = read.csv("networks/CATE_12.97.csv", header = F)
+data$CATE_50 = read.csv("CATE_estimates_50_tuning_1.csv", header = F)$V1
+#CATE_150 = read.csv("networks/CATE_149.65.csv", header = F)
+data$CATE_500 = read.csv("CATE_estimates_500_tuning.csv", header = F)$V1
+data$CATE_5000 = read.csv("CATE_estimates_5000_tuning_1.csv", header = F)$V1
+data$CATE_50000 = read.csv("CATE_estimates_50000_tuning.csv", header = F)$V1
+data$CATE_100000 = read.csv("CATE_estimates_100000_tuning.csv", header = F)$V1
+data$CATE_500000 = read.csv("CATE_estimates_500000_tuning_1.csv", header = F)$V1
 
-data$CATE_causal_network = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE.csv", header = F)$V1
+data$CATE_causal_network = read.csv("networks/CATE.csv", header = F)$V1
 
 eps_cate = rbind(data.frame(CATE = data$CATE_0_05, eps = "e = 0.05", obs = 1:length(data$CATE_0_05)), 
                  data.frame(CATE = data$CATE_0_5, eps = "e = 0.5", obs = 1:length(data$CATE_0_5)), 
@@ -1830,9 +1827,9 @@ eps_cate %>% ggplot(aes(x= eps, y= CATE)) + geom_text_repel(data = means, box.pa
   xlab("privacy risk (epsilon)")+ theme(legend.position = "none") + scale_y_continuous(breaks = c(0,1,2,3,4,5,10,15,20))
 
 # second field experiment results -------------------------------------------------
-response = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/evaluation_export/response.csv")
-input_features = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/evaluation_export/input_features.csv")
-features = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/evaluation_export/mailing_period_features.csv")
+response = read.csv("evaluation_export/response.csv")
+input_features = read.csv("evaluation_export/input_features.csv")
+features = read.csv("evaluation_export/mailing_period_features.csv")
 features[is.na(features)] = 0
 summary(input_features)
 summary(response)
@@ -1878,15 +1875,15 @@ jo$MAX_SALESDATE = NULL
 jo$MIN_SALESDATE = NULL
 
 # add epsilon out-of-sample
-jo$CATE_0_05 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_0_05_tuning_out.csv", header = F)$V1
-jo$CATE_0_5 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_0_5_tuning_out.csv", header = F)$V1
-jo$CATE_5 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_5_tuning_out.csv", header = F)$V1
-jo$CATE_50 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_50_tuning_out.csv", header = F)$V1
-jo$CATE_500 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_500_tuning_out.csv", header = F)$V1
-jo$CATE_5000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_5000_tuning_out_1.csv", header = F)$V1
-jo$CATE_50000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_50000_tuning_out.csv", header = F)$V1
-jo$CATE_100000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_100000_tuning_out.csv", header = F)$V1
-jo$CATE_500000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_500000_tuning_out.csv", header = F)$V1
+jo$CATE_0_05 = read.csv("CATE_estimates_0_05_tuning_out.csv", header = F)$V1
+jo$CATE_0_5 = read.csv("CATE_estimates_0_5_tuning_out.csv", header = F)$V1
+jo$CATE_5 = read.csv("CATE_estimates_5_tuning_out.csv", header = F)$V1
+jo$CATE_50 = read.csv("CATE_estimates_50_tuning_out.csv", header = F)$V1
+jo$CATE_500 = read.csv("CATE_estimates_500_tuning_out.csv", header = F)$V1
+jo$CATE_5000 = read.csv("CATE_estimates_5000_tuning_out_1.csv", header = F)$V1
+jo$CATE_50000 = read.csv("CATE_estimates_50000_tuning_out.csv", header = F)$V1
+jo$CATE_100000 = read.csv("CATE_estimates_100000_tuning_out.csv", header = F)$V1
+jo$CATE_500000 = read.csv("CATE_estimates_500000_tuning_out.csv", header = F)$V1
 
 summary(jo$CATE_0_05)
 colnames(jo)
@@ -1951,7 +1948,7 @@ in_out_sample %>%
 
 # mate --------------------------------------------------------------------
 # in sample
-data$causal_neural_network = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE.csv", header = F)$V1
+data$causal_neural_network = read.csv("networks/CATE.csv", header = F)$V1
 mate = data %>% dplyr::select(PARTNER_REDEEMED_12_MONTHS, DAYS_SINCE_REG, AGE_BUCKET, GENDER, causal_neural_network, CATE_0_05, CATE_0_5, CATE_5, CATE_50, CATE_500, CATE_5000,CATE_500000) %>% pivot_longer(c(causal_neural_network, CATE_0_05, CATE_0_5, CATE_5, CATE_50, CATE_500, CATE_5000, CATE_500000))
 unique(mate$name)
 mate$name[mate$name == "causal_forest"] = "causal forest"
@@ -2088,7 +2085,7 @@ uplift_gather %>% ggplot(aes(x = percentage*100, y = revenue, color = name, shap
 
 # in sample
 colnames(data)
-data$causal_neural_network = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE.csv", header = F)$V1
+data$causal_neural_network = read.csv("networks/CATE.csv", header = F)$V1
 selection = function(percentage, data = data){
   top = floor(nrow(data) * percentage)
   data$selection_tau = 0
@@ -2199,7 +2196,7 @@ uplift_sort %>% group_by(name, sample) %>% filter(sample == "out-of-sample") %>%
 # realized revenue --------------------------------------------------------
 # insample
 data$cost = 0.5
-data$causal_neural_network = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE.csv", header = F)$V1
+data$causal_neural_network = read.csv("networks/CATE.csv", header = F)$V1
 data$random = sample(1:nrow(data))
 
 cor(data$causal_neural_network, data$RESP_REVENUE)
@@ -2331,7 +2328,7 @@ for (percent in c(0.0001,0.01,0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.50,0.55
 
 # inofsample
 colnames(data)
-data$causal_neural_network = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE.csv", header = F)$V1
+data$causal_neural_network = read.csv("networks/CATE.csv", header = F)$V1
 selection = function(percentage = 0.1, data = data){
   top = floor(nrow(data) * percentage)
   data$customer = 1:nrow(data)
@@ -2423,7 +2420,7 @@ soverlap %>% filter(sample == "in-sample") %>%
 # second privacy protection strategy ---------------------------------------
 ## second privacy strategy (in-sample)
 RESP_REVENUE = data$RESP_REVENUE
-CATE_causal_network = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/networks/CATE.csv", header = F)
+CATE_causal_network = read.csv("networks/CATE.csv", header = F)
 third = data.frame(causal_neural_tau = CATE_causal_network$V1, revenue = RESP_REVENUE)
 results_in_field = c()
 results_in_field_uplift = c()
@@ -3093,9 +3090,9 @@ ggarrange(results_in_in_sample_uplift, results_in_out_sample_uplift, ncol =2, co
 ggarrange(overlap_in_field, overlap_out_field, ncol =2, common.legend = TRUE, legend="bottom")
 
 # privacy elasticity ------------------------------------------------------
-response = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/evaluation_export/response.csv")
-input_features = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/evaluation_export/input_features.csv")
-features = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/evaluation_export/mailing_period_features.csv")
+response = read.csv("evaluation_export/response.csv")
+input_features = read.csv("evaluation_export/input_features.csv")
+features = read.csv("evaluation_export/mailing_period_features.csv")
 features[is.na(features)] = 0
 summary(input_features)
 summary(response)
@@ -3124,15 +3121,15 @@ jo$MAX_SALESDATE = NULL
 jo$MIN_SALESDATE = NULL
 
 # add epsilon out-of-sample
-jo$CATE_0_05 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_0_05_tuning_out_1.csv", header = F)$V1
-jo$CATE_0_5 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_0_5_tuning_out_1.csv", header = F)$V1
-jo$CATE_5 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_5_tuning_out_1.csv", header = F)$V1
-jo$CATE_50 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_50_tuning_out_1.csv", header = F)$V1
-jo$CATE_500 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_500_tuning_out.csv", header = F)$V1
-jo$CATE_5000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_5000_tuning_out.csv", header = F)$V1
-jo$CATE_50000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_50000_tuning_out.csv", header = F)$V1
-jo$CATE_100000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_100000_tuning_out.csv", header = F)$V1
-jo$CATE_500000 = read.csv("C:/Users/Gilia/Dropbox/PhD/Projects/3rd project - targeting/jo/CATE_estimates_500000_tuning_out.csv", header = F)$V1
+jo$CATE_0_05 = read.csv("CATE_estimates_0_05_tuning_out_1.csv", header = F)$V1
+jo$CATE_0_5 = read.csv("CATE_estimates_0_5_tuning_out_1.csv", header = F)$V1
+jo$CATE_5 = read.csv("CATE_estimates_5_tuning_out_1.csv", header = F)$V1
+jo$CATE_50 = read.csv("CATE_estimates_50_tuning_out_1.csv", header = F)$V1
+jo$CATE_500 = read.csv("CATE_estimates_500_tuning_out.csv", header = F)$V1
+jo$CATE_5000 = read.csv("CATE_estimates_5000_tuning_out.csv", header = F)$V1
+jo$CATE_50000 = read.csv("CATE_estimates_50000_tuning_out.csv", header = F)$V1
+jo$CATE_100000 = read.csv("CATE_estimates_100000_tuning_out.csv", header = F)$V1
+jo$CATE_500000 = read.csv("CATE_estimates_500000_tuning_out.csv", header = F)$V1
 
 formula = paste(names(jo[,c(16:135)]), collapse='+')
 formula_behavioral = paste(names(jo[,c(20:135)]), collapse='+')
