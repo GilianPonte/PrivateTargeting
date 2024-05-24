@@ -257,7 +257,7 @@ tf.random.set_seed(seed)
 np.random.seed(seed)
 tf.keras.utils.set_random_seed(seed)
 
-dataframe = pd.read_csv('features_roughclean_privacy_billa_plus_smaller.csv', sep = ',', header = 0)
+dataframe = pd.read_csv('data.csv', sep = ',', header = 0)
 X = dataframe.iloc[:,1:16] # features
 T = dataframe.iloc[:,16]
 Y = dataframe.iloc[:,17]
