@@ -81,11 +81,10 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
         )
         return model
     
-  # shuffle data
-  idx = np.random.permutation(pd.DataFrame(X).index)
-  X = np.array(pd.DataFrame(X).reindex(idx))
-  Y = np.array(pd.DataFrame(Y).reindex(idx))
-  T = np.array(pd.DataFrame(T).reindex(idx))
+  # not shuffling data here.
+  X = np.array(pd.DataFrame(X))
+  Y = np.array(pd.DataFrame(Y))
+  T = np.array(pd.DataFrame(T))
 
   # save models
   checkpoint_filepath_mx = f"{directory}/m_x.hdf5"
