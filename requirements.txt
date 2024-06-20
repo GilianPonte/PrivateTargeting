@@ -1,0 +1,5 @@
+tensorflow<2.16
+pandas
+scikit-learn
+tensorflow_privacy
+keras-tuner

@@ -19,29 +19,18 @@ def set_seed(seed):
 
 
 def main(datafile, noise_multiplier, iterations, seed):
-    # try:
-    #     seeds_data = np.genfromtxt('/content/seeds_data.txt', delimiter=',', dtype=np.int64)
-    # except IOError:
-    #     print("Error: File not found or could not be read.")
-    # try:
-    #     seeds_training = np.genfromtxt('/content/seeds_training.txt', delimiter=',', dtype=np.int64)
-    # except IOError:
-    #     print("Error: File not found or could not be read.")
 
     # set time
     start_time = time.time()
     tensorflow.config.experimental.enable_op_determinism()
     os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
 
-    # Read seeds_data and seeds_training from file
-    # seeds_data = read_file("seeds_data.txt")
-    # seeds_training = read_file("seeds_training.txt")
-
     # simulation parameters
     results_list = []
-    #noise_multipliers = [0] # Initialize lists to store results for each noise multiplier ,8.7,3.4,1.12,0.845,0.567,0.3543
 
-    set_seed(seed)
+    # Create meta-random for generating seeds
+    metanoise = random.Random(seed)
+    set_seed(metanoise.randint(0, 0xffffffff))
 
     # read data
     try:

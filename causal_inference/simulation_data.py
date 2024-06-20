@@ -1,7 +1,11 @@
 import numpy as np
 import pandas as pd
 
-def data_simulation(n):
+
+def data_simulation(seed, datafile, n=100_000):
+
+    np.random.seed(seed)
+
     # Generate random covariates
     covariate_1 = np.random.normal(size=n)
     covariate_2 = np.random.normal(size=n)
@@ -25,18 +29,30 @@ def data_simulation(n):
     y = w * mu1 + (1 - w) * mu0 + 0.5 * np.random.normal(size=n)
 
     # Create a Pandas DataFrame
-    df = pd.DataFrame({'covariate_1': covariate_1,
-                       'covariate_2': covariate_2,
-                       'covariate_3': covariate_3,
-                       'covariate_4': covariate_4,
-                       'covariate_5': covariate_5,
-                       'covariate_6': covariate_6,
-                       'w': w,
-                       'm': m,
-                       'tau': tau,
-                       'mu1': mu1,
-                       'mu0': mu0,
-                       'y': y})
-    
-
+    df = pd.DataFrame({
+        'covariate_1': covariate_1,
+        'covariate_2': covariate_2,
+        'covariate_3': covariate_3,
+        'covariate_4': covariate_4,
+        'covariate_5': covariate_5,
+        'covariate_6': covariate_6,
+        'w': w,
+        'm': m,
+        'tau': tau,
+        'mu1': mu1,
+        'mu0': mu0,
+        'y': y
+    })
+    df.to_csv(datafile)
     return df
+
+
+if __name__ == '__main__':
+    import sys
+
+    assert len(sys.argv) == 4, "Usage: [seed] [datafile] [n=100_000]"
+    seed = int(sys.argv[1])
+    datafile = sys.argv[2]
+    count = int(sys.argv[3])
+    data_simulation(seed=seed, datafile=datafile, n=count)
+

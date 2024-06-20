@@ -112,12 +112,6 @@ def cnn(X, Y, T, scaling = True, batch_size = 100, epochs = 100, max_epochs = 10
   cv = KFold(n_splits=folds, shuffle = False) # K-fold validation shuffle is off to prevent additional noise?
 
   for fold, (train_idx, test_idx) in enumerate(cv.split(X)):
-    # set random seeds
-    # np.random.seed(seed)
-    # tf.random.set_seed(seed)
-    # random.seed(seed)
-    # tf.keras.utils.set_random_seed(seed)
-    
     #print("training model for m(x)")
     model_m_x = tuner.hypermodel.build(best_hps)
     model_m_x.fit(
@@ -442,5 +436,9 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
 
       CATE_estimates = np.concatenate((CATE_estimates, CATE))  # store CATE's
     average_treatment_effect = np.mean(CATE_estimates)
+    X = X[np.argsort(idx)]
+    Y = Y[np.argsort(idx)]
+    T = T[np.argsort(idx)]
+    CATE_estimates = CATE_estimates[np.argsort(idx)]
     print(f"ATE = {average_treatment_effect}")    
     return average_treatment_effect, CATE_estimates, tau_hat, n, epsilon, noise_multiplier, epsilon_conservative
