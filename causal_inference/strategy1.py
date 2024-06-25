@@ -274,7 +274,7 @@ def pcnn(X, Y, T, scaling=True, batch_size=100, epochs=100, max_epochs=1, direct
 
 
     # callback settings for early stopping and saving
-    callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, mode="min")  # early stopping just like in rboost
+    callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, mode="min")  # early stopping just like in rboost
 
     # define ate loss is equal to mean squared error between pseudo outcome and prediction of net.
     def ATE(y_true, y_pred):
